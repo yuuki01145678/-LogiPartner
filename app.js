@@ -3,7 +3,7 @@ const labels={client:"企業",creator:"表現者",owner:"オーナー",subowner:
 const menus={
  client:[["home","ホーム"],["projects","案件"],["creators","表現者一覧"],["match","表現者検索"],["proposals","提案状況"],["chat","案件チャット"]],
  creator:[["home","ホーム"],["creators","プロフィール登録"],["proposals","提案状況"],["chat","案件チャット"],["vault","マイ金庫"]],
- owner:[["home","ホーム"],["owner","オーナーDB"],["subowners","サブオーナー管理"],["projects","案件管理"],["creators","表現者管理"],["match","表現者検索"],["proposals","提案管理"],["chat","案件チャット"],["audit","監査ログ"],["vault","税務・マイ金庫"]],
+ owner:[["home","ホーム"],["owner","オーナーDB"],["subowners","サブオーナー管理"],["projects","案件管理"],["creators","表現者管理"],["match","表現者検索"],["proposals","提案管理"],["chat","案件チャット"],["audit","監査ログ"],["passwords","パスワード管理"],["vault","税務・マイ金庫"]],
  subowner:[["home","ホーム"],["projects","案件確認"],["creators","表現者確認"],["match","表現者検索"],["proposals","提案管理"],["chat","案件チャット"],["vault","税務閲覧"]]
 };
 const tags=["幻想的","温かい","ダーク","ポップ","和風","サイバー","ミニマル","レトロ","高級感","かわいい","クール","ストリート","独創的","透明感","廃退感"];
@@ -36,11 +36,11 @@ function nav(p){
  render(p);
 }
 function head(title,sub=""){return `<div class="page-head"><div><h1>${title}</h1><p class="muted">${sub}</p></div></div>`}
-function render(p){({home,projects,creators,match,proposals,chat,owner,subowners,audit,vault}[p]||home)();}
+function render(p){({home,projects,creators,match,proposals,chat,owner,subowners,audit,passwords,vault}[p]||home)();}
 function home(){
  $("#page-home").innerHTML=head(labels[role]+"ホーム","才能ではなく、世界観でつながる。")+`
  <div class="grid">
-  <div class="card col-12"><h2>Worldview Match</h2><p class="muted">世界観を軸に、企業と表現者をつなぐシックなプラットフォーム。</p></div>
+  <div class="card col-12"><h2>EIRAUM</h2><p class="muted">世界観を軸に、企業と表現者をつなぐシックなプラットフォーム。</p></div>
   <div class="card col-4"><h3>案件</h3><div class="kpi">${state.projects.length}</div></div>
   <div class="card col-4"><h3>表現者</h3><div class="kpi">${state.creators.length}</div></div>
   <div class="card col-4"><h3>提案</h3><div class="kpi">${state.proposals.length}</div></div>
@@ -101,6 +101,38 @@ function audit(){
  $("#page-audit").innerHTML=head("監査ログ","削除できるのはオーナーのみ。")+`<div class="card"><button class="danger" id="clearLog">履歴削除</button>${state.audit.map(a=>`<div class="item"><div><h3>${a.action}</h3><p class="muted">${a.time} / ${a.role}</p></div></div>`).join("")||"<p class='muted'>履歴はありません。</p>"}</div>`;
  $("#clearLog").onclick=()=>{if(role!=="owner")return alert("履歴削除はオーナーのみ可能です");if(confirm("履歴を削除しますか？")){state.audit=[];save();audit();}};
 }
+
+function passwords(){
+ if(role!=="owner"){
+  $("#page-passwords").innerHTML=head("パスワード管理","この画面はオーナーのみ利用できます。")+`<div class="card"><p class="muted">権限がありません。</p></div>`;
+  return;
+ }
+ $("#page-passwords").innerHTML=head("パスワード管理","再設定できるのはオーナーのみです。")+`
+ <div class="grid">
+  <div class="card col-6">
+   <h3>発行ルール</h3>
+   <p class="muted">クライアント企業：契約時に運営から案内</p>
+   <p class="muted">表現者：仮登録後、本登録時に案内</p>
+   <p class="muted">運営側：会社内でのみ共有</p>
+   <p class="status">パスワード再設定：オーナーのみ</p>
+  </div>
+  <div class="card col-6">
+   <h3>再設定デモ</h3>
+   <div class="field"><label>対象</label><select id="resetTarget"><option>企業</option><option>表現者</option><option>サブオーナー</option></select></div>
+   <div class="field"><label>新しい仮パスワード</label><input id="newTempPassword" type="password" placeholder="新しい仮パスワード"></div>
+   <button class="primary" id="resetPasswordBtn">再設定する</button>
+   <p class="hint">※デモ画面では実際の認証情報は変更せず、監査ログに記録します。</p>
+  </div>
+ </div>`;
+ $("#resetPasswordBtn").onclick=()=>{
+  const target=$("#resetTarget").value;
+  if(!$("#newTempPassword").value.trim()) return alert("新しい仮パスワードを入力してください。");
+  log("パスワード再設定："+target);
+  alert(target+"の仮パスワード再設定を記録しました。");
+  $("#newTempPassword").value="";
+ };
+}
+
 function vault(){
  $("#page-vault").innerHTML=head("マイ金庫・税務サポート","源泉徴収・確定申告用データは将来機能として拡張。")+`<div class="grid"><div class="card col-4"><h3>報酬管理</h3><p class="muted">案件ごとの報酬・振込状況。</p></div><div class="card col-4"><h3>源泉徴収</h3><p class="muted">支払調書・源泉徴収関連データ。</p></div><div class="card col-4"><h3>確定申告</h3><p class="muted">年間売上・経費・CSV/PDF出力。</p></div><div class="card col-12"><div class="vault-grid"><div>📄 契約書</div><div>📄 請求書</div><div>📄 領収書</div><div>📄 税務書類</div><div>🖼️ 作品</div></div></div></div>`;
 }
