@@ -3,120 +3,80 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LogiPartner Ver.2.2 Dual Scanner</title>
-  <script src="https://unpkg.com/html5-qrcode" defer></script>
+  <title>LogiPartner Ver.3.0 CSV</title>
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
   <main class="app">
     <section class="header">
       <h1>LogiPartner</h1>
-      <p>Ver.2.2｜トート読み取り二段構え</p>
+      <p>Ver.3.0｜Rodeo CSV取り込み版</p>
     </section>
 
-    <section class="camera-card">
-      <div class="section-title">📷 トートバーコードをスキャン</div>
-      <div class="scan-message" id="scanMessage">まずは「高精度カメラ起動」を押してください。</div>
-
-      <div id="nativeScanner" class="native-scanner">
-        <video id="video" playsinline muted></video>
-        <div class="scan-line"></div>
-      </div>
-
-      <div id="htmlScanner" class="html-scanner">
-        <div id="reader"></div>
-      </div>
-
-      <button class="scan-button" onclick="startNativeScanner()">高精度カメラ起動</button>
-      <button class="sub-button" onclick="startHtmlScanner()">別方式で試す</button>
-      <button class="stop-button" onclick="stopAllScanners()">スキャン停止</button>
-    </section>
-
-    <section class="quick-input">
-      <label>読めない時はトートIDを手入力</label>
-      <div class="manual-row">
-        <input id="quickToteInput" value="tsOBdy2F089" />
-        <button onclick="quickManualAdd()">登録</button>
-      </div>
-    </section>
-
-    <section id="currentTote" class="current-card">
-      <div class="status" id="currentStatus">未スキャン</div>
-      <div class="tote-id" id="currentToteId">トートをスキャンしてください</div>
-
-      <div class="info-grid">
-        <div>
-          <small>CPT</small>
-          <strong id="currentCpt">--:--</strong>
-        </div>
-        <div>
-          <small>残り時間</small>
-          <strong id="currentRemain">--</strong>
-        </div>
-        <div>
-          <small>優先商品</small>
-          <strong id="currentPriorityCount">0個</strong>
-        </div>
-      </div>
-
-      <div class="priority-title">優先商品名</div>
-      <div id="priorityItems" class="priority-items">まだありません</div>
+    <section class="upload-card">
+      <h2>📂 CSVを読み込む</h2>
+      <p>Rodeoから出したCSVを選ぶと、トートごとに危険度を自動集計します。</p>
+      <input id="csvFile" type="file" accept=".csv,text/csv" onchange="loadCsv(event)" />
+      <button onclick="loadDemoData()">デモCSVで確認</button>
+      <div id="loadMessage" class="load-message">まだCSVは読み込まれていません。</div>
     </section>
 
     <section class="summary-card">
-      <h2>CPT危険度サマリー</h2>
+      <h2>危険度サマリー</h2>
       <div class="summary">
         <div class="danger-box">
           <span>🔴 危険</span>
-          <strong id="redCount">0件</strong>
-          <small>CPTまで2時間以内</small>
+          <strong id="dangerCount">0</strong>
+          <small>2時間以内</small>
+        </div>
+        <div class="warning-box">
+          <span>🟡 注意</span>
+          <strong id="warningCount">0</strong>
+          <small>2〜3時間</small>
         </div>
         <div class="safe-box">
           <span>🟢 通常</span>
-          <strong id="greenCount">0件</strong>
-          <small>2時間以上</small>
+          <strong id="safeCount">0</strong>
+          <small>3時間以上</small>
         </div>
+      </div>
+    </section>
+
+    <section class="cpt-card">
+      <h2>CPT別集計</h2>
+      <div id="cptSummary" class="cpt-summary">
+        <div class="empty">CSVを読み込むと表示されます。</div>
       </div>
     </section>
 
     <section class="list-card">
       <div class="list-header">
-        <h2>危険トート一覧</h2>
-        <span>2時間以内を優先</span>
+        <h2>トート一覧</h2>
+        <span>危険順・CPT順</span>
       </div>
-      <div id="toteList" class="tote-list"></div>
+
+      <div class="filter-row">
+        <button onclick="setFilter('all')" id="filterAll">全部</button>
+        <button onclick="setFilter('danger')" id="filterDanger">危険</button>
+        <button onclick="setFilter('unchecked')" id="filterUnchecked">未確認</button>
+      </div>
+
+      <div id="toteList" class="tote-list">
+        <div class="empty">CSVを読み込むと表示されます。</div>
+      </div>
     </section>
 
-    <section class="input-card">
+    <section class="help-card">
       <details>
-        <summary>詳細入力・テスト設定</summary>
-
-        <label>確認者</label>
-        <select id="checker">
-          <option>大庭</option>
-          <option>管理者A</option>
-          <option>管理者B</option>
-          <option>ワーカーA</option>
-        </select>
-
-        <label>トートID</label>
-        <input id="toteInput" value="tsOBdy2F089" />
-
-        <label>CPT</label>
-        <select id="cptInput">
-          <option>13:00</option>
-          <option selected>15:00</option>
-          <option>16:00</option>
-          <option>17:30</option>
-          <option>17:45</option>
-          <option>17:50</option>
-          <option>17:55</option>
-        </select>
-
-        <label>優先商品名（カンマ区切り）</label>
-        <input id="itemsInput" value="モバイルバッテリー, 医薬品, 精密機器" />
-
-        <button onclick="manualAdd()">手動で記録する</button>
+        <summary>CSVの想定列</summary>
+        <p>まずは以下の列名に対応しています。Rodeoの列名が違っても、近い名前なら自動判定します。</p>
+        <ul>
+          <li>コンテナ / tote / container</li>
+          <li>CPT / cpt</li>
+          <li>ASIN</li>
+          <li>商品名 / title / ASIN_TITLES</li>
+          <li>数量 / quantity</li>
+        </ul>
       </details>
     </section>
   </main>

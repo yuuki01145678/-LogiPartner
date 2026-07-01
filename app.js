@@ -1,54 +1,179 @@
-let html5QrCode = null;
-let scannerRunning = false;
-let nativeStream = null;
-let nativeDetector = null;
-let nativeLoopRunning = false;
+let toteRecords = [];
+let currentFilter = "all";
 
-let totes = JSON.parse(localStorage.getItem("logipartner_totes_v22") || "[]");
-let lastScannedText = "";
-let lastScannedAt = 0;
+const DEMO_CSV = `コンテナ,CPT,ASIN,商品名,数量
+tsOBdy1F150,15:00,B0CPLNTR5C,モバイルバッテリー,1
+tsOBdy1F150,15:00,B0CPLNTR5C,モバイルバッテリー,1
+tsOBdy1F150,15:00,B0AAA111,医薬品,1
+tsOBdy1F151,16:00,B0BBB222,食品,2
+tsOBdy1F151,16:00,B0CCC333,精密機器,1
+tsOBdy1F152,17:30,B0DDD444,大型商品,1
+tsOBdy1F153,17:45,B0EEE555,ギフト商品,1
+tsOBdy1F153,17:45,B0FFF666,割れ物,1
+tsOBdy1F154,17:55,B0GGG777,当日優先品,3`;
 
-const CPT_TIMES = ["13:00", "15:00", "16:00", "17:30", "17:45", "17:50", "17:55"];
+function loadDemoData() {
+  processCsv(DEMO_CSV);
+  document.getElementById("loadMessage").textContent = "デモCSVを読み込みました。";
+}
 
-const TOTE_SAMPLE_DB = {
-  "tsOBdy2F089": {
-    cpt: "15:00",
-    items: ["モバイルバッテリー", "医薬品", "精密機器"]
-  },
-  "DEMO-TOTE-001": {
-    cpt: "17:30",
-    items: ["食品", "大型商品"]
-  },
-  "DEMO-TOTE-002": {
-    cpt: "17:45",
-    items: ["ギフト商品", "割れ物", "高単価商品", "当日優先品"]
+function loadCsv(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    processCsv(reader.result);
+    document.getElementById("loadMessage").textContent = file.name + " を読み込みました。";
+  };
+  reader.readAsText(file, "UTF-8");
+}
+
+function processCsv(text) {
+  const rows = parseCsv(text);
+  if (rows.length < 2) {
+    alert("CSVの中身が読み込めませんでした。");
+    return;
   }
-};
 
-window.addEventListener("load", () => {
-  renderDashboard();
-});
+  const headers = rows[0].map(h => normalizeHeader(h));
+  const dataRows = rows.slice(1).filter(r => r.some(c => String(c).trim() !== ""));
 
-function minutesUntil(timeText) {
+  const idx = {
+    tote: findIndex(headers, ["コンテナ", "container", "tote", "トート"]),
+    cpt: findIndex(headers, ["cpt", "CPT", "出荷時間", "締め時間"]),
+    asin: findIndex(headers, ["asin", "ASIN"]),
+    title: findIndex(headers, ["商品名", "title", "asin_titles", "ASIN_TITLES", "品名"]),
+    qty: findIndex(headers, ["数量", "quantity", "qty", "個数"])
+  };
+
+  if (idx.tote < 0) {
+    alert("トート/コンテナ列が見つかりませんでした。");
+    return;
+  }
+
+  const grouped = {};
+
+  for (const row of dataRows) {
+    const tote = getCell(row, idx.tote) || "不明トート";
+    const cpt = getCell(row, idx.cpt) || guessCptFromNow();
+    const title = getCell(row, idx.title) || getCell(row, idx.asin) || "商品名なし";
+    const qty = Number(getCell(row, idx.qty)) || 1;
+
+    if (!grouped[tote]) {
+      grouped[tote] = {
+        toteId: tote,
+        cpt,
+        items: {},
+        totalQty: 0,
+        checked: false
+      };
+    }
+
+    grouped[tote].cpt = grouped[tote].cpt || cpt;
+    grouped[tote].items[title] = (grouped[tote].items[title] || 0) + qty;
+    grouped[tote].totalQty += qty;
+  }
+
+  toteRecords = Object.values(grouped).map(makeToteRecord);
+  sortRecords();
+  renderAll();
+}
+
+function normalizeHeader(h) {
+  return String(h || "").trim().replace(/^\ufeff/, "");
+}
+
+function findIndex(headers, names) {
+  const lowerHeaders = headers.map(h => h.toLowerCase());
+  for (const name of names) {
+    const exact = lowerHeaders.indexOf(String(name).toLowerCase());
+    if (exact >= 0) return exact;
+  }
+  for (let i = 0; i < lowerHeaders.length; i++) {
+    for (const name of names) {
+      if (lowerHeaders[i].includes(String(name).toLowerCase())) return i;
+    }
+  }
+  return -1;
+}
+
+function getCell(row, idx) {
+  if (idx < 0 || idx >= row.length) return "";
+  return String(row[idx] || "").trim();
+}
+
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let cell = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    const next = text[i + 1];
+
+    if (ch === '"' && inQuotes && next === '"') {
+      cell += '"';
+      i++;
+    } else if (ch === '"') {
+      inQuotes = !inQuotes;
+    } else if (ch === "," && !inQuotes) {
+      row.push(cell);
+      cell = "";
+    } else if ((ch === "\n" || ch === "\r") && !inQuotes) {
+      if (ch === "\r" && next === "\n") i++;
+      row.push(cell);
+      rows.push(row);
+      row = [];
+      cell = "";
+    } else {
+      cell += ch;
+    }
+  }
+
+  if (cell || row.length) {
+    row.push(cell);
+    rows.push(row);
+  }
+
+  return rows;
+}
+
+function makeToteRecord(raw) {
+  const remain = minutesUntil(raw.cpt);
+  const level = getLevel(remain);
+  const itemEntries = Object.entries(raw.items).sort((a, b) => b[1] - a[1]);
+
+  return {
+    ...raw,
+    remain,
+    level,
+    priority: level === "danger" ? 1 : level === "warning" ? 2 : 3,
+    itemEntries,
+    priorityCount: itemEntries.reduce((sum, item) => sum + item[1], 0)
+  };
+}
+
+function minutesUntil(cpt) {
   const now = new Date();
-  const [h, m] = timeText.split(":").map(Number);
+  const time = String(cpt).trim();
+  const match = time.match(/(\d{1,2}):(\d{2})/);
+  if (!match) return 9999;
+
   const target = new Date(now);
-  target.setHours(h, m, 0, 0);
+  target.setHours(Number(match[1]), Number(match[2]), 0, 0);
   return Math.round((target - now) / 60000);
 }
 
-function judgeByCpt(cpt) {
-  const remain = minutesUntil(cpt);
-  if (remain <= 120) return { level: "danger", label: "🔴 危険", priority: 1 };
-  return { level: "safe", label: "🟢 通常", priority: 2 };
-}
-
-function nowTime() {
-  const now = new Date();
-  return String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
+function getLevel(remain) {
+  if (remain <= 120) return "danger";
+  if (remain <= 180) return "warning";
+  return "safe";
 }
 
 function formatRemain(min) {
+  if (min === 9999) return "不明";
   if (min < 0) return "超過" + Math.abs(min) + "分";
   if (min < 60) return "あと" + min + "分";
   const h = Math.floor(min / 60);
@@ -56,274 +181,122 @@ function formatRemain(min) {
   return "あと" + h + "時間" + m + "分";
 }
 
-function makeRecord(toteId, cpt, items, checker) {
-  const judged = judgeByCpt(cpt);
-  return {
-    toteId,
-    cpt,
-    remain: minutesUntil(cpt),
-    items,
-    priorityCount: items.length,
-    checker,
-    checkedAt: nowTime(),
-    level: judged.level,
-    label: judged.label,
-    priority: judged.priority
-  };
+function guessCptFromNow() {
+  const cpts = ["13:00", "15:00", "16:00", "17:30", "17:45", "17:50", "17:55"];
+  for (const cpt of cpts) {
+    if (minutesUntil(cpt) >= 0) return cpt;
+  }
+  return cpts[cpts.length - 1];
 }
 
-function saveTotes() {
-  totes.sort((a, b) => a.priority - b.priority || a.remain - b.remain || b.priorityCount - a.priorityCount);
-  localStorage.setItem("logipartner_totes_v22", JSON.stringify(totes));
+function sortRecords() {
+  toteRecords.sort((a, b) => {
+    if (a.checked !== b.checked) return a.checked ? 1 : -1;
+    return a.priority - b.priority || a.remain - b.remain || b.priorityCount - a.priorityCount;
+  });
 }
 
-function addOrUpdateTote(toteId, cpt, items, checker) {
-  const record = makeRecord(toteId, cpt, items, checker);
-  const existingIndex = totes.findIndex(t => t.toteId === toteId);
-
-  if (existingIndex >= 0) totes[existingIndex] = record;
-  else totes.push(record);
-
-  saveTotes();
-  showCurrent(record);
-  renderDashboard();
+function renderAll() {
+  renderSummary();
+  renderCptSummary();
+  renderToteList();
 }
 
-function showCurrent(record) {
-  const card = document.getElementById("currentTote");
-  card.className = "current-card " + record.level;
-
-  document.getElementById("currentStatus").textContent = record.label;
-  document.getElementById("currentToteId").textContent = record.toteId;
-  document.getElementById("currentCpt").textContent = record.cpt;
-  document.getElementById("currentRemain").textContent = formatRemain(record.remain);
-  document.getElementById("currentPriorityCount").textContent = record.priorityCount + "個";
-
-  document.getElementById("priorityItems").innerHTML =
-    record.items.length
-      ? record.items.map(item => `<div class="item-chip">${item}</div>`).join("")
-      : "優先商品なし";
+function renderSummary() {
+  document.getElementById("dangerCount").textContent = toteRecords.filter(t => t.level === "danger").length;
+  document.getElementById("warningCount").textContent = toteRecords.filter(t => t.level === "warning").length;
+  document.getElementById("safeCount").textContent = toteRecords.filter(t => t.level === "safe").length;
 }
 
-function renderDashboard() {
-  totes = totes.map(t => makeRecord(t.toteId, t.cpt, t.items, t.checker));
-  saveTotes();
-
-  document.getElementById("redCount").textContent = totes.filter(t => t.level === "danger").length + "件";
-  document.getElementById("greenCount").textContent = totes.filter(t => t.level === "safe").length + "件";
-
-  const list = document.getElementById("toteList");
-
-  if (totes.length === 0) {
-    list.innerHTML = '<div class="tote-item"><div class="tote-main"><strong>まだ記録がありません</strong></div><span>トートをスキャンするとここに表示されます。</span></div>';
+function renderCptSummary() {
+  const box = document.getElementById("cptSummary");
+  if (!toteRecords.length) {
+    box.innerHTML = '<div class="empty">CSVを読み込むと表示されます。</div>';
     return;
   }
 
-  list.innerHTML = totes.map(t => `
-    <div class="tote-item ${t.level}">
-      <div class="tote-main">
-        <strong>${t.label}｜${t.toteId}</strong>
-        <div class="remaining">${formatRemain(t.remain)}</div>
+  const grouped = {};
+  for (const t of toteRecords) {
+    if (!grouped[t.cpt]) grouped[t.cpt] = { cpt: t.cpt, totes: 0, qty: 0, danger: 0, remain: t.remain };
+    grouped[t.cpt].totes++;
+    grouped[t.cpt].qty += t.totalQty;
+    if (t.level === "danger") grouped[t.cpt].danger++;
+  }
+
+  const list = Object.values(grouped).sort((a, b) => a.remain - b.remain);
+
+  box.innerHTML = list.map(g => `
+    <div class="cpt-item">
+      <div class="cpt-main">
+        <strong>CPT ${g.cpt}</strong>
+        <span>${formatRemain(g.remain)}</span>
       </div>
-      <span>CPT：${t.cpt} / 優先商品：${t.priorityCount}個</span>
-      <span>商品名：${t.items.slice(0, 3).join("、")}${t.items.length > 3 ? " ほか" : ""}</span>
-      <span>最終確認：${t.checker} ${t.checkedAt}</span>
+      <small>トート ${g.totes}件 / 商品 ${g.qty}個 / 危険 ${g.danger}件</small>
     </div>
   `).join("");
 }
 
-function getToteInfo(toteId) {
-  if (TOTE_SAMPLE_DB[toteId]) return TOTE_SAMPLE_DB[toteId];
-
-  let sum = 0;
-  for (let i = 0; i < toteId.length; i++) sum += toteId.charCodeAt(i);
-
-  const cpt = CPT_TIMES[sum % CPT_TIMES.length];
-  const itemPool = ["医薬品", "食品", "モバイルバッテリー", "精密機器", "大型商品", "割れ物", "ギフト商品", "当日優先品"];
-  const count = 1 + (sum % 4);
-  const items = [];
-  for (let i = 0; i < count; i++) items.push(itemPool[(sum + i) % itemPool.length]);
-
-  return { cpt, items };
+function setFilter(filter) {
+  currentFilter = filter;
+  renderToteList();
 }
 
-function handleScannedCode(decodedText) {
-  const now = Date.now();
-  const cleanText = decodedText.trim();
+function renderToteList() {
+  const box = document.getElementById("toteList");
 
-  if (!cleanText) return;
-  if (cleanText === lastScannedText && now - lastScannedAt < 1800) return;
-
-  lastScannedText = cleanText;
-  lastScannedAt = now;
-
-  const checker = document.getElementById("checker").value;
-  const info = getToteInfo(cleanText);
-
-  document.getElementById("quickToteInput").value = cleanText;
-  document.getElementById("toteInput").value = cleanText;
-  document.getElementById("cptInput").value = info.cpt;
-  document.getElementById("itemsInput").value = info.items.join(", ");
-
-  addOrUpdateTote(cleanText, info.cpt, info.items, checker);
-
-  if (navigator.vibrate) navigator.vibrate(120);
-
-  document.getElementById("scanMessage").textContent =
-    "読み取り成功：" + cleanText + "　次のトートをそのまま映してください。";
-}
-
-function quickManualAdd() {
-  const toteId = document.getElementById("quickToteInput").value || "未入力";
-  const checker = document.getElementById("checker").value;
-  const info = getToteInfo(toteId);
-  addOrUpdateTote(toteId, info.cpt, info.items, checker);
-}
-
-function manualAdd() {
-  const toteId = document.getElementById("toteInput").value || "未入力";
-  const cpt = document.getElementById("cptInput").value;
-  const items = document.getElementById("itemsInput").value.split(",").map(s => s.trim()).filter(Boolean);
-  const checker = document.getElementById("checker").value;
-  addOrUpdateTote(toteId, cpt, items, checker);
-}
-
-async function startNativeScanner() {
-  await stopHtmlScanner();
-
-  const scanMessage = document.getElementById("scanMessage");
-  const nativeScanner = document.getElementById("nativeScanner");
-  const htmlScanner = document.getElementById("htmlScanner");
-  const video = document.getElementById("video");
-
-  nativeScanner.style.display = "block";
-  htmlScanner.style.display = "none";
-  scanMessage.textContent = "高精度カメラを起動しています。";
-
-  if (!("BarcodeDetector" in window)) {
-    scanMessage.textContent = "このブラウザは高精度方式に未対応です。「別方式で試す」を押してください。";
+  if (!toteRecords.length) {
+    box.innerHTML = '<div class="empty">CSVを読み込むと表示されます。</div>';
     return;
   }
 
-  try {
-    nativeDetector = new BarcodeDetector({
-      formats: ["code_128", "code_39", "itf", "codabar", "ean_13", "ean_8", "upc_a", "upc_e"]
-    });
+  let list = [...toteRecords];
+  if (currentFilter === "danger") list = list.filter(t => t.level === "danger");
+  if (currentFilter === "unchecked") list = list.filter(t => !t.checked);
 
-    nativeStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: "environment" },
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
-        focusMode: "continuous"
-      },
-      audio: false
-    });
-
-    video.srcObject = nativeStream;
-    await video.play();
-
-    nativeLoopRunning = true;
-    scanMessage.textContent = "高精度スキャン中。バーコード全体を緑枠に合わせてください。";
-    nativeScanLoop();
-  } catch (err) {
-    scanMessage.textContent = "高精度カメラを起動できませんでした。「別方式で試す」を押してください。";
-  }
-}
-
-async function nativeScanLoop() {
-  const video = document.getElementById("video");
-
-  while (nativeLoopRunning) {
-    try {
-      const barcodes = await nativeDetector.detect(video);
-      if (barcodes && barcodes.length > 0) {
-        const value = barcodes[0].rawValue || "";
-        handleScannedCode(value);
-      }
-    } catch (err) {}
-
-    await new Promise(resolve => setTimeout(resolve, 180));
-  }
-}
-
-async function startHtmlScanner() {
-  await stopNativeScanner();
-
-  const htmlScanner = document.getElementById("htmlScanner");
-  const nativeScanner = document.getElementById("nativeScanner");
-  const scanMessage = document.getElementById("scanMessage");
-
-  htmlScanner.style.display = "block";
-  nativeScanner.style.display = "none";
-  scanMessage.textContent = "別方式カメラを起動しています。";
-
-  if (!window.Html5Qrcode) {
-    scanMessage.textContent = "読み取り機能の読み込みに失敗しました。少し待ってから再読み込みしてください。";
+  if (!list.length) {
+    box.innerHTML = '<div class="empty">該当するトートはありません。</div>';
     return;
   }
 
-  if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
-
-  if (scannerRunning) {
-    scanMessage.textContent = "すでにスキャン中です。";
-    return;
-  }
-
-  try {
-    await html5QrCode.start(
-      { facingMode: "environment" },
-      {
-        fps: 15,
-        qrbox: { width: 320, height: 95 },
-        aspectRatio: 1.7777778,
-        disableFlip: false,
-        formatsToSupport: [
-          Html5QrcodeSupportedFormats.CODE_128,
-          Html5QrcodeSupportedFormats.CODE_39,
-          Html5QrcodeSupportedFormats.ITF,
-          Html5QrcodeSupportedFormats.CODABAR,
-          Html5QrcodeSupportedFormats.QR_CODE,
-          Html5QrcodeSupportedFormats.EAN_13,
-          Html5QrcodeSupportedFormats.EAN_8,
-          Html5QrcodeSupportedFormats.UPC_A,
-          Html5QrcodeSupportedFormats.UPC_E
-        ]
-      },
-      (decodedText) => handleScannedCode(decodedText),
-      () => {}
-    );
-
-    scannerRunning = true;
-    scanMessage.textContent = "別方式でスキャン中。バーコード全体を横長枠へ。";
-  } catch (err) {
-    scanMessage.textContent = "カメラを起動できませんでした。ページ更新・カメラ許可・HTTPSを確認してください。";
-    scannerRunning = false;
-  }
+  box.innerHTML = list.map(t => `
+    <div class="tote-item ${t.level} ${t.checked ? "checked" : ""}">
+      <div class="tote-top">
+        <strong>${statusLabel(t.level)} ${t.toteId}</strong>
+        <div class="remaining">${formatRemain(t.remain)}</div>
+      </div>
+      <div class="tote-meta">CPT：${t.cpt} / 商品合計：${t.totalQty}個 / 優先商品：${t.priorityCount}個</div>
+      <div class="item-list">
+        ${t.itemEntries.slice(0, 5).map(([name, qty]) => `<div class="item-chip">${escapeHtml(name)} ×${qty}</div>`).join("")}
+      </div>
+      <button class="check-btn" onclick="toggleChecked('${escapeAttr(t.toteId)}')">${t.checked ? "未確認に戻す" : "確認済みにする"}</button>
+    </div>
+  `).join("");
 }
 
-async function stopNativeScanner() {
-  nativeLoopRunning = false;
-
-  if (nativeStream) {
-    nativeStream.getTracks().forEach(track => track.stop());
-    nativeStream = null;
-  }
-
-  const video = document.getElementById("video");
-  if (video) video.srcObject = null;
+function statusLabel(level) {
+  if (level === "danger") return "🔴";
+  if (level === "warning") return "🟡";
+  return "🟢";
 }
 
-async function stopHtmlScanner() {
-  if (html5QrCode && scannerRunning) {
-    try { await html5QrCode.stop(); } catch (err) {}
-  }
-  scannerRunning = false;
+function toggleChecked(toteId) {
+  const target = toteRecords.find(t => t.toteId === toteId);
+  if (!target) return;
+  target.checked = !target.checked;
+  sortRecords();
+  renderAll();
 }
 
-async function stopAllScanners() {
-  await stopNativeScanner();
-  await stopHtmlScanner();
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, s => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[s]));
+}
 
-  document.getElementById("scanMessage").textContent = "スキャンを停止しました。";
+function escapeAttr(str) {
+  return String(str).replace(/'/g, "\\'");
 }
