@@ -654,22 +654,20 @@ setupEvents();
 render();
 
 
+
 function setupBrandIntro() {
   const intro = document.getElementById("brandIntro");
   const login = document.getElementById("loginScreen");
   if (!intro || !login) return;
 
-  const seen = localStorage.getItem("wm_brand_intro_seen_v16");
-  if (seen) {
-    intro.style.display = "none";
-    login.classList.remove("intro-wait");
-    login.classList.add("ready");
-    return;
-  }
+  // デモ確認用：毎回ブランド演出を表示する
+  intro.style.display = "grid";
+  intro.classList.remove("hide");
+  login.classList.add("intro-wait");
+  login.classList.remove("ready");
 
   setTimeout(() => {
     intro.classList.add("hide");
-    localStorage.setItem("wm_brand_intro_seen_v16", "1");
     setTimeout(() => {
       intro.style.display = "none";
       login.classList.remove("intro-wait");
@@ -679,3 +677,10 @@ function setupBrandIntro() {
 }
 
 setupBrandIntro();
+
+
+
+const replayIntroButton = document.getElementById("replayIntroButton");
+if (replayIntroButton) {
+  replayIntroButton.addEventListener("click", () => setupBrandIntro());
+}
