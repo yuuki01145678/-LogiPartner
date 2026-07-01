@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LogiPartner Ver.1.0 Dev</title>
+  <script src="https://unpkg.com/html5-qrcode" defer></script>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app">
+    <section class="header">
+      <h1>LogiPartner</h1>
+      <p>Ver.1.0 Dev｜管理者を楽にする現場管理ツール</p>
+    </section>
+
+    <section class="card">
+      <label>確認者</label>
+      <select id="checker">
+        <option>大庭</option>
+        <option>管理者A</option>
+        <option>管理者B</option>
+        <option>ワーカーA</option>
+      </select>
+    </section>
+
+    <section class="actions">
+      <button class="scan-button" onclick="startScanner()">📷 カメラでスキャン</button>
+      <button id="stopButton" class="stop-button" onclick="stopScanner()">スキャン停止</button>
+      <button class="demo-button" onclick="demoScan()">テストスキャン</button>
+    </section>
+
+    <section id="scannerWrap" class="scanner-wrap">
+      <div class="scan-message" id="scanMessage">バーコードをカメラに映してください。</div>
+      <div id="reader"></div>
+    </section>
+
+    <section class="card">
+      <label>荷物バーコード</label>
+      <input id="barcode" value="LP-839204-TEST" />
+
+      <label>CPTまでの残り時間（分）</label>
+      <input id="cpt" type="number" value="42" />
+
+      <label>滞留時間（分）</label>
+      <input id="stay" type="number" value="78" />
+
+      <button onclick="addOrUpdatePackage()">記録する</button>
+    </section>
+
+    <section id="result" class="result warning">
+      <div class="status" id="status">🟡 注意</div>
+
+      <div class="row">
+        <small>荷物番号</small>
+        <strong id="outBarcode">LP-839204-TEST</strong>
+      </div>
+
+      <div class="row">
+        <small>CPTまで</small>
+        <strong id="outCpt">あと42分</strong>
+      </div>
+
+      <div class="row">
+        <small>滞留時間</small>
+        <strong id="outStay">1時間18分</strong>
+      </div>
+
+      <div class="row">
+        <small>最終確認者</small>
+        <strong id="outChecker">大庭</strong>
+      </div>
+
+      <div class="row">
+        <small>確認時刻</small>
+        <strong id="outTime">--:--</strong>
+      </div>
+    </section>
+
+    <section class="dashboard">
+      <h2>管理者一覧</h2>
+      <div class="summary">
+        <div><strong id="redCount">0</strong><span>危険</span></div>
+        <div><strong id="yellowCount">0</strong><span>注意</span></div>
+        <div><strong id="greenCount">0</strong><span>安全</span></div>
+      </div>
+      <div id="packageList" class="package-list"></div>
+    </section>
+
+    <section class="memo">
+      <div class="memo-title">判定の見方</div>
+      <div class="rule">
+        <div class="rule-icon">🟢</div>
+        <div><strong>安全</strong><span>CPTまで余裕あり。滞留も短い状態。</span></div>
+      </div>
+      <div class="rule">
+        <div class="rule-icon">🟡</div>
+        <div><strong>注意</strong><span>CPTが近い、または滞留が長くなってきている状態。</span></div>
+      </div>
+      <div class="rule">
+        <div class="rule-icon">🔴</div>
+        <div><strong>危険</strong><span>CPT直前、または長時間滞留。最優先で確認。</span></div>
+      </div>
+      <div class="note">※ CPTまでの残り時間を最優先にして、滞留時間も合わせて判断します。</div>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
