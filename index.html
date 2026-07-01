@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Worldview Match v1.3</title>
+  <title>Worldview Match v1.5</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <div class="app">
-    <aside class="sidebar">
-      <div class="brand">
+  <section id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="brand center">
         <div class="logo">W</div>
         <div>
           <h1>Worldview Match</h1>
@@ -17,31 +17,56 @@
         </div>
       </div>
 
-      <select class="mobile-menu" id="mobileMenu">
-        <option value="home">ホーム</option>
-        <option value="projectForm">案件登録</option>
-        <option value="projectList">案件一覧</option>
-        <option value="creatorSearch">クリエイター検索</option>
-        <option value="proposalStatus">提案状況</option>
-        <option value="creatorList">クリエイター一覧</option>
-        <option value="creatorRegister">クリエイター登録</option>
-      </select>
+      <h2>ログイン</h2>
+      <p class="muted">企業・クリエイター・運営の権限ごとに表示画面を切り替えます。</p>
 
-      <nav class="menu">
-        <div class="menu-title">CLIENT</div>
-        <button class="active" data-page="home">ホーム <small>概要</small></button>
-        <button data-page="projectForm">案件登録 <small>入力</small></button>
-        <button data-page="projectList">案件一覧 <small>確認</small></button>
-        <button data-page="creatorSearch">クリエイター検索 <small>候補</small></button>
-        <button data-page="proposalStatus">提案状況 <small>進行</small></button>
-        <div class="menu-title">CREATOR</div>
-        <button data-page="creatorList">クリエイター一覧 <small>世界観</small></button>
-        <button data-page="creatorRegister">クリエイター登録 <small>本人入力</small></button>
-      </nav>
+      <div class="role-grid">
+        <button class="role-card on" data-role-select="client">
+          <b>企業側</b>
+          <span>案件登録・候補検索・提案状況</span>
+        </button>
+        <button class="role-card" data-role-select="creator">
+          <b>クリエイター側</b>
+          <span>プロフィール登録・提案確認</span>
+        </button>
+        <button class="role-card" data-role-select="admin">
+          <b>運営側</b>
+          <span>全データ確認・審査・進行管理</span>
+        </button>
+      </div>
+
+      <div class="field">
+        <label>パスワード</label>
+        <input id="passwordInput" type="password" placeholder="パスワードを入力" />
+      </div>
+
+      <button id="loginButton" class="primary full">ログイン</button>
+
+      <div class="notice small">
+        デモ用パスワード：企業 client123 / クリエイター creator123 / 運営 admin123
+      </div>
+    </div>
+  </section>
+
+  <div id="appShell" class="app hidden">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">W</div>
+        <div>
+          <h1>Worldview Match</h1>
+          <p id="roleLabel">Client</p>
+        </div>
+      </div>
+
+      <select class="mobile-menu" id="mobileMenu"></select>
+
+      <nav class="menu" id="sideMenu"></nav>
 
       <div class="side-policy">
         <b>運営規定</b><br />
         候補選択のみで契約成立とはしません。運営確認・本人確認・面談・条件合意を経て正式契約とします。
+        <br /><br />
+        <button id="logoutButton" class="ghost full">ログアウト</button>
       </div>
     </aside>
 
@@ -50,51 +75,32 @@
         <div class="grid">
           <div class="card hero col-12">
             <span class="badge">Creative Matching Platform</span>
-            <h2>世界観から、最適なクリエイターをご提案します。</h2>
-            <p>
+            <h2 id="homeTitle">世界観から、最適なクリエイターをご提案します。</h2>
+            <p id="homeText">
               企業が求める雰囲気・思想・ブランドイメージを入力すると、
-              世界観の近いイラストレーター候補を抽出。提案後は運営が間に入り、
+              世界観の近いクリエイター候補を抽出。提案後は運営が間に入り、
               面談・条件合意まで丁寧に進行します。
             </p>
-            <div class="actions">
-              <button class="primary" data-jump="projectForm">案件を登録する</button>
-              <button class="ghost" data-jump="creatorRegister">クリエイター登録を見る</button>
-            </div>
+            <div class="actions" id="homeActions"></div>
           </div>
 
           <div class="card col-12">
-            <h3>ご利用の流れ</h3>
+            <h3>基本フロー</h3>
             <div class="flow">
               <span>1. 案件登録</span>
               <span>2. 世界観分析</span>
-              <span class="now">3. 候補提案</span>
+              <span class="now">3. 案件提案</span>
               <span>4. 運営確認</span>
               <span>5. 面談</span>
               <span>6. 正式契約</span>
             </div>
-          </div>
-
-          <div class="card col-4">
-            <h3>個性を登録</h3>
-            <p class="muted">クリエイター本人が、得意な表現・制作ポリシー・受けない案件を登録できます。</p>
-          </div>
-          <div class="card col-4">
-            <h3>詳細ページで判断</h3>
-            <p class="muted">候補一覧だけでなく、作品ギャラリーや世界観を見て提案できます。</p>
-          </div>
-          <div class="card col-4">
-            <h3>提案前に確認</h3>
-            <p class="muted">案件提案を送る前に、企業側が内容を確認できる画面を挟みます。</p>
           </div>
         </div>
       </section>
 
       <section id="projectForm" class="page hidden">
         <div class="page-head">
-          <div>
-            <h2>案件登録</h2>
-            <p>求めるイラストの世界観・用途・条件を入力してください。</p>
-          </div>
+          <div><h2>案件登録</h2><p>求めるクリエイティブの世界観・用途・条件を入力してください。</p></div>
         </div>
 
         <div class="grid">
@@ -113,13 +119,9 @@
 
           <div class="card col-5">
             <h3>案件登録について</h3>
-            <div class="notice">
-              案件内容は登録後、運営が確認します。企業側では、制作内容・使用範囲・予算・納期を明確に入力してください。
-            </div>
-            <h3>確認ポイント</h3>
+            <div class="notice">案件内容は登録後、運営が確認します。企業側では、制作内容・使用範囲・予算・納期を明確に入力してください。</div>
             <p class="muted">・制作物の使用先が明確か</p>
             <p class="muted">・希望納期と予算に無理がないか</p>
-            <p class="muted">・クリエイターに相談したい条件があるか</p>
             <p class="muted">・正式契約は面談・条件合意後に成立します</p>
           </div>
         </div>
@@ -127,18 +129,15 @@
 
       <section id="projectList" class="page hidden">
         <div class="page-head">
-          <div><h2>案件一覧</h2><p>登録した案件を確認し、候補検索へ進めます。</p></div>
-          <button class="primary" data-jump="projectForm">新規案件登録</button>
+          <div><h2>案件一覧</h2><p id="projectListText">登録した案件を確認し、候補検索へ進めます。</p></div>
+          <button class="primary" data-jump="projectForm" data-role-show="client admin">新規案件登録</button>
         </div>
         <div class="card"><div id="projectListArea"></div></div>
       </section>
 
       <section id="creatorSearch" class="page hidden">
         <div class="page-head">
-          <div>
-            <h2>クリエイター検索</h2>
-            <p>選択中案件：<span id="activeProjectName" class="status">未選択</span></p>
-          </div>
+          <div><h2>クリエイター検索</h2><p>選択中案件：<span id="activeProjectName" class="status">未選択</span></p></div>
           <button class="ghost" data-jump="proposalStatus">提案状況へ</button>
         </div>
         <div class="card">
@@ -151,17 +150,14 @@
       <section id="creatorList" class="page hidden">
         <div class="page-head">
           <div><h2>クリエイター一覧</h2><p>登録クリエイターの世界観・制作ポリシーをご確認いただけます。</p></div>
-          <button class="primary" data-jump="creatorRegister">新規登録</button>
+          <button class="primary" data-jump="creatorRegister" data-role-show="creator admin">新規登録</button>
         </div>
         <div class="card"><div id="creatorListArea"></div></div>
       </section>
 
       <section id="creatorRegister" class="page hidden">
         <div class="page-head">
-          <div>
-            <h2>クリエイター登録</h2>
-            <p>顔・名前・得意なイメージ・作品を登録する本人向けフォームです。</p>
-          </div>
+          <div><h2>クリエイター登録</h2><p>顔・名前・得意な世界観・作品を登録する本人向けフォームです。</p></div>
           <button class="ghost" data-jump="creatorList">一覧へ戻る</button>
         </div>
 
@@ -191,46 +187,26 @@
             </div>
 
             <div class="wizard-page hidden" data-wizard-page="2">
-              <h3>どんなイメージが得意ですか？</h3>
-              <div class="field">
-                <label>得意なイメージタグ</label>
-                <div id="creatorTagArea" class="tags"></div>
-              </div>
-              <div class="field">
-                <label>得意な世界観を文章で教えてください</label>
-                <textarea name="world">シックで重厚感のある世界観、静かな高級感、余白を活かした表現が得意。</textarea>
-              </div>
-              <div class="field">
-                <label>制作で大切にしていること</label>
-                <textarea name="policy">流行に寄せすぎず、ブランドの芯に残る表現を大切にしています。</textarea>
-              </div>
+              <h3>どんな世界観が得意ですか？</h3>
+              <div class="field"><label>得意な世界観タグ</label><div id="creatorTagArea" class="tags"></div></div>
+              <div class="field"><label>貴方の世界観を鮮明に教えてください。</label><textarea name="world">シックで重厚感のある世界観、静かな高級感、余白を活かした表現が得意。</textarea></div>
+              <div class="field"><label>貴方の思想を鮮明に教えてください。</label><textarea name="policy">流行に寄せすぎず、ブランドの芯に残る表現を大切にしています。</textarea></div>
             </div>
 
             <div class="wizard-page hidden" data-wizard-page="3">
               <h3>作品を2〜3枚提出</h3>
               <p class="muted">今はブラウザ内でプレビューする形です。本番ではサーバーに画像保存します。</p>
               <div class="grid">
-                <div class="col-4">
-                  <div class="field"><label>作品1</label><input name="workFile1" type="file" accept="image/*" /></div>
-                  <div class="work-preview" id="workPreview1">作品1</div>
-                </div>
-                <div class="col-4">
-                  <div class="field"><label>作品2</label><input name="workFile2" type="file" accept="image/*" /></div>
-                  <div class="work-preview" id="workPreview2">作品2</div>
-                </div>
-                <div class="col-4">
-                  <div class="field"><label>作品3</label><input name="workFile3" type="file" accept="image/*" /></div>
-                  <div class="work-preview" id="workPreview3">作品3</div>
-                </div>
+                <div class="col-4"><div class="field"><label>作品1</label><input name="workFile1" type="file" accept="image/*" /></div><div class="work-preview" id="workPreview1">作品1</div></div>
+                <div class="col-4"><div class="field"><label>作品2</label><input name="workFile2" type="file" accept="image/*" /></div><div class="work-preview" id="workPreview2">作品2</div></div>
+                <div class="col-4"><div class="field"><label>作品3</label><input name="workFile3" type="file" accept="image/*" /></div><div class="work-preview" id="workPreview3">作品3</div></div>
               </div>
               <div class="field"><label>作品についての補足</label><textarea name="workNote">ブランドビジュアル、SNS用イラスト、キービジュアル制作の実績があります。</textarea></div>
             </div>
 
             <div class="wizard-page hidden" data-wizard-page="4">
               <h3>登録前の確認事項</h3>
-              <div class="notice">
-                登録者本人の安全とサービスの信用を守るため、以下の確認に同意した方のみ登録できます。
-              </div>
+              <div class="notice">登録者本人の安全とサービスの信用を守るため、以下の確認に同意した方のみ登録できます。</div>
               <label class="checkline"><input type="checkbox" id="confirmNoAntiSocial" /> 暴力団・反社会的勢力、またはそれに準ずる関係者ではありません。</label>
               <label class="checkline"><input type="checkbox" id="confirmLegal" /> 違法行為、詐欺、危険行為、公序良俗に反する案件には関与しません。</label>
               <label class="checkline"><input type="checkbox" id="confirmRights" /> 提出する作品は、自分が掲載権限を持つものです。</label>
@@ -248,10 +224,7 @@
 
       <section id="creatorDetail" class="page hidden">
         <div class="page-head">
-          <div>
-            <h2 id="detailName">クリエイター詳細</h2>
-            <p id="detailSub" class="muted"></p>
-          </div>
+          <div><h2 id="detailName">クリエイター詳細</h2><p id="detailSub" class="muted"></p></div>
           <button class="ghost" data-jump="creatorList">一覧へ戻る</button>
         </div>
         <div id="creatorDetailArea"></div>
@@ -259,19 +232,29 @@
 
       <section id="proposalConfirm" class="page hidden">
         <div class="page-head">
-          <div>
-            <h2>案件提案前の確認</h2>
-            <p>送信前に、提案先と案件内容をご確認ください。</p>
-          </div>
+          <div><h2>案件提案前の確認</h2><p>送信前に、提案先と案件内容をご確認ください。</p></div>
         </div>
         <div id="proposalConfirmArea"></div>
       </section>
 
       <section id="proposalStatus" class="page hidden">
-        <div class="page-head">
-          <div><h2>提案状況</h2><p>案件提案後の進行状況を確認できます。</p></div>
-        </div>
+        <div class="page-head"><div><h2>提案状況</h2><p>案件提案後の進行状況を確認できます。</p></div></div>
         <div class="card"><div id="proposalArea"></div></div>
+      </section>
+
+      <section id="adminDashboard" class="page hidden">
+        <div class="page-head">
+          <div><h2>運営ダッシュボード</h2><p>企業・クリエイター・案件提案をすべて確認できます。</p></div>
+        </div>
+        <div class="grid">
+          <div class="card col-4"><h3>案件</h3><div class="kpi" id="adminProjectCount">0</div></div>
+          <div class="card col-4"><h3>クリエイター</h3><div class="kpi" id="adminCreatorCount">0</div></div>
+          <div class="card col-4"><h3>案件提案</h3><div class="kpi" id="adminProposalCount">0</div></div>
+          <div class="card col-12">
+            <h3>運営確認</h3>
+            <p class="muted">運営側は全画面にアクセスできます。案件登録内容、クリエイター登録内容、提案状況を確認し、必要に応じて差し戻し・承認を行う想定です。</p>
+          </div>
+        </div>
       </section>
     </main>
   </div>
