@@ -122,6 +122,7 @@ button {
 .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top: 20px; }
 .col-4 { grid-column: span 4; }
 .col-5 { grid-column: span 5; }
+.col-6 { grid-column: span 6; }
 .col-7 { grid-column: span 7; }
 .col-12 { grid-column: span 12; }
 label { display: block; color: var(--muted); font-size: 13px; margin-bottom: 7px; }
@@ -165,6 +166,23 @@ textarea { min-height: 96px; resize: vertical; }
   margin: 12px 0;
   font-size: 13px;
 }
+.gallery {
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+.work {
+  min-height: 120px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: linear-gradient(135deg, #11141c, #202433);
+  display:grid;
+  place-items:center;
+  color: var(--muted);
+  padding: 16px;
+  text-align:center;
+}
 .mobile-menu { display:none; }
 @media (max-width: 900px) {
   .app { grid-template-columns: 1fr; }
@@ -173,8 +191,9 @@ textarea { min-height: 96px; resize: vertical; }
   .menu { display:none; }
   .mobile-menu { display:block; width:100%; }
   .main { padding: 20px; }
-  .col-4,.col-5,.col-7,.col-12 { grid-column: span 12; }
+  .col-4,.col-5,.col-6,.col-7,.col-12 { grid-column: span 12; }
   .match-card { grid-template-columns: 1fr; }
   .hero h2 { font-size:34px; }
   .flow { grid-template-columns: 1fr 1fr; }
+  .gallery { grid-template-columns: 1fr; }
 }

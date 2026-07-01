@@ -1,36 +1,55 @@
 const tags = ["幻想的","温かい","ダーク","ポップ","和風","サイバー","手描き","水彩","アニメ調","リアル","ミニマル","レトロ","高級感","かわいい","クール","ストリート","独創的","透明感"];
+const ngOptions = ["政治","宗教","成人向け","暴力表現","AI学習利用","実績非公開","短納期","無償修正多数","著作権譲渡必須","その他"];
 
 const initialState = {
   activeProjectId: null,
   selectedTags: ["幻想的", "温かい", "独創的"],
+  creatorSelectedTags: ["高級感", "ミニマル", "ダーク"],
+  creatorNgTags: ["AI学習利用", "著作権譲渡必須"],
+  pendingProposalCreatorId: null,
   projects: [],
   creators: [
     {
       id: "creator_aoi",
       name: "Aoi",
+      email: "",
+      url: "",
       price: "50,000円〜",
+      leadTime: "2〜3週間",
       world: "幻想的、透明感、静かな感情表現、少し儚い雰囲気が得意。",
       policy: "流行よりも、ブランドの奥にある空気を描きたい。",
       tags: ["幻想的", "透明感", "水彩", "温かい"],
-      caution: ["成人向け", "AI学習利用"]
+      caution: ["成人向け", "AI学習利用"],
+      ngText: "AI学習利用は不可。",
+      works: ["透明感のある人物イラスト", "夜明けの背景イラスト", "幻想的なブランドビジュアル"]
     },
     {
       id: "creator_riku",
       name: "Riku",
+      email: "",
+      url: "",
       price: "80,000円〜",
+      leadTime: "3〜5週間",
       world: "ストリート、尖った構図、若者向けの強いビジュアルが得意。",
       policy: "見た瞬間に記憶に残る強さを大切にしています。",
       tags: ["ストリート", "クール", "独創的", "ダーク"],
-      caution: ["政治", "宗教"]
+      caution: ["政治", "宗教"],
+      ngText: "政治・宗教案件は要確認。",
+      works: ["ストリート系キービジュアル", "音楽イベントポスター", "ダークトーンの人物画"]
     },
     {
       id: "creator_mika",
       name: "Mika",
+      email: "",
+      url: "",
       price: "40,000円〜",
+      leadTime: "1〜2週間",
       world: "かわいい、ポップ、親しみやすいキャラクター表現が得意。",
       policy: "見る人が少し元気になるデザインを作りたい。",
       tags: ["かわいい", "ポップ", "温かい", "アニメ調"],
-      caution: ["暴力表現"]
+      caution: ["暴力表現"],
+      ngText: "強い暴力表現は不可。",
+      works: ["SNSアイコン", "親しみやすいキャラクター", "ポップな広告用イラスト"]
     }
   ],
   proposals: []
@@ -44,12 +63,12 @@ function uid() {
 }
 
 function loadState() {
-  const saved = localStorage.getItem("worldview_match_v1");
+  const saved = localStorage.getItem("worldview_match_v1_1");
   return saved ? JSON.parse(saved) : structuredClone(initialState);
 }
 
 function saveState() {
-  localStorage.setItem("worldview_match_v1", JSON.stringify(state));
+  localStorage.setItem("worldview_match_v1_1", JSON.stringify(state));
   render();
 }
 
@@ -69,22 +88,39 @@ function getActiveProject() {
   return state.projects.find(project => project.id === state.activeProjectId) || null;
 }
 
-function renderTags() {
-  const area = document.getElementById("projectTagArea");
+function makeTags(areaId, sourceTags, selected, onClick) {
+  const area = document.getElementById(areaId);
   if (!area) return;
-  area.innerHTML = tags.map(tag => {
-    const active = state.selectedTags.includes(tag) ? "on" : "";
+  area.innerHTML = sourceTags.map(tag => {
+    const active = selected.includes(tag) ? "on" : "";
     return `<span class="tag ${active}" data-tag="${tag}">${tag}</span>`;
   }).join("");
 
   area.querySelectorAll(".tag").forEach(element => {
-    element.addEventListener("click", () => {
-      const tag = element.dataset.tag;
-      state.selectedTags = state.selectedTags.includes(tag)
-        ? state.selectedTags.filter(item => item !== tag)
-        : [...state.selectedTags, tag];
-      saveState();
-    });
+    element.addEventListener("click", () => onClick(element.dataset.tag));
+  });
+}
+
+function renderTags() {
+  makeTags("projectTagArea", tags, state.selectedTags, tag => {
+    state.selectedTags = state.selectedTags.includes(tag)
+      ? state.selectedTags.filter(item => item !== tag)
+      : [...state.selectedTags, tag];
+    saveState();
+  });
+
+  makeTags("creatorTagArea", tags, state.creatorSelectedTags, tag => {
+    state.creatorSelectedTags = state.creatorSelectedTags.includes(tag)
+      ? state.creatorSelectedTags.filter(item => item !== tag)
+      : [...state.creatorSelectedTags, tag];
+    saveState();
+  });
+
+  makeTags("creatorNgArea", ngOptions, state.creatorNgTags, tag => {
+    state.creatorNgTags = state.creatorNgTags.includes(tag)
+      ? state.creatorNgTags.filter(item => item !== tag)
+      : [...state.creatorNgTags, tag];
+    saveState();
   });
 }
 
@@ -133,11 +169,50 @@ function renderCreators() {
         <p>${creator.world}</p>
         <p class="muted">${creator.policy}</p>
         <div>${creator.tags.map(tag => `<span class="pill">${tag}</span>`).join("")}</div>
-        <p class="muted">参考価格：${creator.price}</p>
+        <p class="muted">参考価格：${creator.price} / 納期目安：${creator.leadTime || "要相談"}</p>
         <p class="muted">確認が必要な条件：${creator.caution.join(" / ") || "なし"}</p>
+      </div>
+      <div>
+        <button class="primary" data-detail-creator="${creator.id}">詳細を見る</button>
       </div>
     </div>
   `).join("");
+
+  area.querySelectorAll("[data-detail-creator]").forEach(button => {
+    button.addEventListener("click", () => showCreatorDetail(button.dataset.detailCreator));
+  });
+}
+
+function showCreatorDetail(creatorId) {
+  const creator = state.creators.find(item => item.id === creatorId);
+  document.getElementById("detailName").textContent = creator.name;
+  document.getElementById("detailSub").textContent = `${creator.price} / 納期目安：${creator.leadTime || "要相談"}`;
+
+  document.getElementById("creatorDetailArea").innerHTML = `
+    <div class="grid">
+      <div class="card col-7">
+        <h3>世界観</h3>
+        <p>${creator.world}</p>
+        <h3>制作ポリシー</h3>
+        <p class="muted">${creator.policy}</p>
+        <div>${creator.tags.map(tag => `<span class="pill">${tag}</span>`).join("")}</div>
+        <h3>作品ギャラリー</h3>
+        <div class="gallery">
+          ${(creator.works || []).map(work => `<div class="work">${work}</div>`).join("") || `<div class="work">作品未登録</div>`}
+        </div>
+      </div>
+      <div class="card col-5">
+        <h3>依頼前の確認</h3>
+        <p class="muted">確認が必要な条件：${creator.caution.join(" / ") || "なし"}</p>
+        <p class="muted">${creator.ngText || ""}</p>
+        <p class="muted">ポートフォリオ：${creator.url ? `<a href="${creator.url}" target="_blank">${creator.url}</a>` : "未登録"}</p>
+        <button class="primary" data-confirm-proposal="${creator.id}">このクリエイターへ案件提案</button>
+      </div>
+    </div>
+  `;
+
+  document.querySelector("[data-confirm-proposal]").addEventListener("click", () => openProposalConfirm(creatorId));
+  navigate("creatorDetail");
 }
 
 function scoreCreator(creator, project) {
@@ -174,14 +249,61 @@ function runMatch() {
       </div>
       <div>
         <div class="score">${creator.score}%</div>
-        <button class="primary" data-send-proposal="${creator.id}">案件提案を送る</button>
+        <button class="ghost" data-detail-creator="${creator.id}">詳細を見る</button>
+        <button class="primary" data-confirm-proposal="${creator.id}">案件提案へ</button>
       </div>
     </div>
   `).join("");
 
-  area.querySelectorAll("[data-send-proposal]").forEach(button => {
-    button.addEventListener("click", () => sendProposal(button.dataset.sendProposal));
+  area.querySelectorAll("[data-detail-creator]").forEach(button => {
+    button.addEventListener("click", () => showCreatorDetail(button.dataset.detailCreator));
   });
+  area.querySelectorAll("[data-confirm-proposal]").forEach(button => {
+    button.addEventListener("click", () => openProposalConfirm(button.dataset.confirmProposal));
+  });
+}
+
+function openProposalConfirm(creatorId) {
+  const project = getActiveProject();
+  if (!project) {
+    alert("先に案件を選択してください。");
+    return;
+  }
+
+  const creator = state.creators.find(item => item.id === creatorId);
+  state.pendingProposalCreatorId = creatorId;
+
+  document.getElementById("proposalConfirmArea").innerHTML = `
+    <div class="grid">
+      <div class="card col-6">
+        <h3>提案先クリエイター</h3>
+        <p class="status">${creator.name}</p>
+        <p>${creator.world}</p>
+        <p class="muted">参考価格：${creator.price} / 納期目安：${creator.leadTime || "要相談"}</p>
+        <div>${creator.tags.map(tag => `<span class="pill">${tag}</span>`).join("")}</div>
+      </div>
+      <div class="card col-6">
+        <h3>提案案件</h3>
+        <p class="status">${project.title}</p>
+        <p>${project.company} / ${project.person}</p>
+        <p class="muted">${project.detail}</p>
+        <p class="muted">予算：${project.budget} / 納期：${project.deadline}</p>
+      </div>
+      <div class="card col-12">
+        <h3>確認事項</h3>
+        <p class="muted">この時点では正式契約ではありません。運営確認後、クリエイター本人へ案件内容を共有し、面談・条件合意へ進みます。</p>
+        <button class="primary" id="finalSendProposal">案件提案を送信する</button>
+        <button class="ghost" data-jump="creatorSearch">候補検索へ戻る</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("finalSendProposal").addEventListener("click", () => sendProposal(creatorId));
+  document.querySelectorAll("[data-jump]").forEach(button => {
+    button.addEventListener("click", () => navigate(button.dataset.jump));
+  });
+
+  navigate("proposalConfirm");
 }
 
 function sendProposal(creatorId) {
@@ -307,6 +429,32 @@ function setupEvents() {
     saveState();
     alert("案件を登録しました。候補検索へ進めます。");
     navigate("projectList");
+  });
+
+  document.getElementById("creatorFormElement").addEventListener("submit", event => {
+    event.preventDefault();
+    const form = new FormData(event.target);
+    const works = [form.get("work1"), form.get("work2"), form.get("work3")].filter(Boolean);
+
+    const creator = {
+      id: uid(),
+      name: form.get("name"),
+      email: form.get("email"),
+      url: form.get("url"),
+      price: form.get("price"),
+      leadTime: form.get("leadTime"),
+      world: form.get("world"),
+      policy: form.get("policy"),
+      tags: [...state.creatorSelectedTags],
+      caution: [...state.creatorNgTags],
+      ngText: form.get("ngText"),
+      works: works.length ? works : ["作品URL未登録"]
+    };
+
+    state.creators.push(creator);
+    saveState();
+    alert("クリエイタープロフィールを登録しました。");
+    navigate("creatorList");
   });
 
   document.getElementById("runMatchButton").addEventListener("click", runMatch);

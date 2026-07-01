@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Worldview Match</title>
+  <title>Worldview Match v1.1</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
@@ -24,6 +24,7 @@
         <option value="creatorSearch">クリエイター検索</option>
         <option value="proposalStatus">提案状況</option>
         <option value="creatorList">クリエイター一覧</option>
+        <option value="creatorRegister">クリエイター登録</option>
       </select>
 
       <nav class="menu">
@@ -33,8 +34,9 @@
         <button data-page="projectList">案件一覧 <small>確認</small></button>
         <button data-page="creatorSearch">クリエイター検索 <small>候補</small></button>
         <button data-page="proposalStatus">提案状況 <small>進行</small></button>
-        <div class="menu-title">PORTFOLIO</div>
+        <div class="menu-title">CREATOR</div>
         <button data-page="creatorList">クリエイター一覧 <small>世界観</small></button>
+        <button data-page="creatorRegister">クリエイター登録 <small>本人入力</small></button>
       </nav>
 
       <div class="side-policy">
@@ -56,7 +58,7 @@
             </p>
             <div class="actions">
               <button class="primary" data-jump="projectForm">案件を登録する</button>
-              <button class="ghost" data-jump="creatorList">クリエイターを見る</button>
+              <button class="ghost" data-jump="creatorRegister">クリエイター登録を見る</button>
             </div>
           </div>
 
@@ -73,16 +75,16 @@
           </div>
 
           <div class="card col-4">
-            <h3>世界観で探せる</h3>
-            <p class="muted">「高級感」「幻想的」「温かい」など、言葉にしづらいイメージから候補を探せます。</p>
+            <h3>個性を登録</h3>
+            <p class="muted">クリエイター本人が、得意な表現・制作ポリシー・受けない案件を登録できます。</p>
           </div>
           <div class="card col-4">
-            <h3>運営が伴走</h3>
-            <p class="muted">企業とクリエイターが安心して進められるよう、提案後に運営確認を挟みます。</p>
+            <h3>詳細ページで判断</h3>
+            <p class="muted">候補一覧だけでなく、作品ギャラリーや世界観を見て提案できます。</p>
           </div>
           <div class="card col-4">
-            <h3>即決定にしない</h3>
-            <p class="muted">企業が候補を選んでも、面談・条件合意までは正式契約になりません。</p>
+            <h3>提案前に確認</h3>
+            <p class="muted">案件提案を送る前に、企業側が内容を確認できる画面を挟みます。</p>
           </div>
         </div>
       </section>
@@ -111,21 +113,10 @@
 
           <div class="card col-5">
             <h3>案件確認</h3>
-            <div class="notice">
-              危険・違法・反社会的案件、クリエイターへの不利益が大きい案件は受付対象外です。
-            </div>
-            <div class="field">
-              <label>反社会的・違法・危険要素</label>
-              <select id="risk"><option value="safe">なし</option><option value="danger">あり</option></select>
-            </div>
-            <div class="field">
-              <label>クリエイターへの強要・不利益条件</label>
-              <select id="force"><option value="safe">なし</option><option value="danger">あり</option></select>
-            </div>
-            <div class="field">
-              <label>使用範囲</label>
-              <select id="usage"><option value="safe">明確</option><option value="review">相談したい</option></select>
-            </div>
+            <div class="notice">危険・違法・反社会的案件、クリエイターへの不利益が大きい案件は受付対象外です。</div>
+            <div class="field"><label>反社会的・違法・危険要素</label><select id="risk"><option value="safe">なし</option><option value="danger">あり</option></select></div>
+            <div class="field"><label>クリエイターへの強要・不利益条件</label><select id="force"><option value="safe">なし</option><option value="danger">あり</option></select></div>
+            <div class="field"><label>使用範囲</label><select id="usage"><option value="safe">明確</option><option value="review">相談したい</option></select></div>
             <button id="checkProjectButton" type="button">内容を確認する</button>
             <h3>確認結果</h3>
             <p id="safetyResult" class="status">未確認</p>
@@ -135,10 +126,7 @@
 
       <section id="projectList" class="page hidden">
         <div class="page-head">
-          <div>
-            <h2>案件一覧</h2>
-            <p>登録した案件を確認し、候補検索へ進めます。</p>
-          </div>
+          <div><h2>案件一覧</h2><p>登録した案件を確認し、候補検索へ進めます。</p></div>
           <button class="primary" data-jump="projectForm">新規案件登録</button>
         </div>
         <div class="card"><div id="projectListArea"></div></div>
@@ -159,24 +147,82 @@
         </div>
       </section>
 
-      <section id="proposalStatus" class="page hidden">
-        <div class="page-head">
-          <div>
-            <h2>提案状況</h2>
-            <p>案件提案後の進行状況を確認できます。</p>
-          </div>
-        </div>
-        <div class="card"><div id="proposalArea"></div></div>
-      </section>
-
       <section id="creatorList" class="page hidden">
         <div class="page-head">
-          <div>
-            <h2>クリエイター一覧</h2>
-            <p>登録クリエイターの世界観・制作ポリシーをご確認いただけます。</p>
-          </div>
+          <div><h2>クリエイター一覧</h2><p>登録クリエイターの世界観・制作ポリシーをご確認いただけます。</p></div>
+          <button class="primary" data-jump="creatorRegister">新規登録</button>
         </div>
         <div class="card"><div id="creatorListArea"></div></div>
+      </section>
+
+      <section id="creatorRegister" class="page hidden">
+        <div class="page-head">
+          <div><h2>クリエイター登録</h2><p>本人が自分の個性・世界観・受けない案件を登録するフォームです。</p></div>
+        </div>
+
+        <div class="grid">
+          <form id="creatorFormElement" class="card col-7">
+            <h3>基本プロフィール</h3>
+            <div class="field"><label>活動名</label><input name="name" required value="Noir Atelier" /></div>
+            <div class="field"><label>連絡先メール</label><input name="email" type="email" placeholder="example@example.com" /></div>
+            <div class="field"><label>SNS / ポートフォリオURL</label><input name="url" placeholder="https://..." /></div>
+            <div class="field"><label>参考価格</label><input name="price" value="70,000円〜" /></div>
+            <div class="field"><label>納期目安</label><input name="leadTime" value="2〜4週間" /></div>
+
+            <h3>世界観・制作方針</h3>
+            <div class="field"><label>得意な世界観</label><textarea name="world">シックで重厚感のある世界観、静かな高級感、余白を活かした表現が得意。</textarea></div>
+            <div class="field"><label>制作ポリシー</label><textarea name="policy">流行に寄せすぎず、ブランドの芯に残る表現を大切にしています。</textarea></div>
+            <div class="field"><label>得意タグ</label><div id="creatorTagArea" class="tags"></div></div>
+
+            <h3>作品ギャラリー</h3>
+            <div class="field"><label>作品URL 1</label><input name="work1" placeholder="https://..." /></div>
+            <div class="field"><label>作品URL 2</label><input name="work2" placeholder="https://..." /></div>
+            <div class="field"><label>作品URL 3</label><input name="work3" placeholder="https://..." /></div>
+
+            <h3>受けない案件・確認が必要な条件</h3>
+            <div class="field"><label>NG条件</label><div id="creatorNgArea" class="tags"></div></div>
+            <div class="field"><label>その他NG・補足</label><textarea name="ngText">AI学習利用、過度な修正回数、実績非公開案件は事前相談。</textarea></div>
+
+            <button class="primary" type="submit">プロフィールを登録する</button>
+          </form>
+
+          <div class="card col-5">
+            <h3>登録時に大切にすること</h3>
+            <div class="notice">
+              このフォームは履歴書ではなく、クリエイターの「個展ページ」を作るための入力フォームです。
+            </div>
+            <p class="muted">スキルだけでなく、得意な空気感・思想・制作ポリシーを登録することで、企業が世界観から選べるようになります。</p>
+            <p class="muted">NG条件はマッチング前に確認され、無理な案件提案を避けるために使います。</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="creatorDetail" class="page hidden">
+        <div class="page-head">
+          <div>
+            <h2 id="detailName">クリエイター詳細</h2>
+            <p id="detailSub" class="muted"></p>
+          </div>
+          <button class="ghost" data-jump="creatorList">一覧へ戻る</button>
+        </div>
+        <div id="creatorDetailArea"></div>
+      </section>
+
+      <section id="proposalConfirm" class="page hidden">
+        <div class="page-head">
+          <div>
+            <h2>案件提案前の確認</h2>
+            <p>送信前に、提案先と案件内容をご確認ください。</p>
+          </div>
+        </div>
+        <div id="proposalConfirmArea"></div>
+      </section>
+
+      <section id="proposalStatus" class="page hidden">
+        <div class="page-head">
+          <div><h2>提案状況</h2><p>案件提案後の進行状況を確認できます。</p></div>
+        </div>
+        <div class="card"><div id="proposalArea"></div></div>
       </section>
     </main>
   </div>
