@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LogiPartner Ver.1.2 Dev</title>
+  <title>LogiPartner Ver.2.0 Tote CPT</title>
   <script src="https://unpkg.com/html5-qrcode" defer></script>
   <link rel="stylesheet" href="./style.css" />
 </head>
@@ -11,55 +11,70 @@
   <main class="app">
     <section class="header">
       <h1>LogiPartner</h1>
-      <p>Ver.1.2 Dev｜連続スキャン対応</p>
+      <p>Ver.2.0｜トートCPT管理</p>
     </section>
 
     <section class="camera-card">
-      <div class="section-title">📷 連続スキャン</div>
+      <div class="section-title">📷 トートをスキャン</div>
       <div class="scan-message" id="scanMessage">カメラ起動を押してください。</div>
-
       <div id="scannerWrap" class="scanner-wrap">
         <div id="reader"></div>
       </div>
-
       <button class="scan-button" onclick="startScanner()">カメラ起動</button>
       <button class="stop-button" onclick="stopScanner()">スキャン停止</button>
-      <button class="demo-button" onclick="demoScan()">テストスキャン</button>
+      <button class="demo-button" onclick="demoScan()">テストトート</button>
+    </section>
+
+    <section id="currentTote" class="current-card">
+      <div class="status" id="currentStatus">未スキャン</div>
+      <div class="tote-id" id="currentToteId">トートをスキャンしてください</div>
+
+      <div class="info-grid">
+        <div>
+          <small>CPT</small>
+          <strong id="currentCpt">--:--</strong>
+        </div>
+        <div>
+          <small>残り時間</small>
+          <strong id="currentRemain">--</strong>
+        </div>
+        <div>
+          <small>優先商品</small>
+          <strong id="currentPriorityCount">0個</strong>
+        </div>
+      </div>
+
+      <div class="priority-title">優先商品名</div>
+      <div id="priorityItems" class="priority-items">まだありません</div>
     </section>
 
     <section class="summary-card">
-      <h2>危険度サマリー</h2>
+      <h2>CPT危険度サマリー</h2>
       <div class="summary">
         <div class="danger-box">
           <span>🔴 危険</span>
           <strong id="redCount">0件</strong>
-          <small>30分以内</small>
-        </div>
-        <div class="warning-box">
-          <span>🟡 注意</span>
-          <strong id="yellowCount">0件</strong>
-          <small>30分〜1時間</small>
+          <small>CPTまで2時間以内</small>
         </div>
         <div class="safe-box">
-          <span>🟢 安全</span>
+          <span>🟢 通常</span>
           <strong id="greenCount">0件</strong>
-          <small>1時間以上</small>
+          <small>2時間以上</small>
         </div>
       </div>
     </section>
 
     <section class="list-card">
       <div class="list-header">
-        <h2>危険荷物一覧</h2>
-        <span>赤から優先対応</span>
+        <h2>危険トート一覧</h2>
+        <span>2時間以内を優先</span>
       </div>
-      <div id="packageList" class="package-list"></div>
+      <div id="toteList" class="tote-list"></div>
     </section>
 
     <section class="input-card">
       <details>
-        <summary>手入力・確認者設定</summary>
-
+        <summary>手入力・テスト用</summary>
         <label>確認者</label>
         <select id="checker">
           <option>大庭</option>
@@ -68,16 +83,24 @@
           <option>ワーカーA</option>
         </select>
 
-        <label>荷物バーコード</label>
-        <input id="barcode" value="LP-839204-TEST" />
+        <label>トートID</label>
+        <input id="toteInput" value="tsOBdy2F089" />
 
-        <label>CPTまでの残り時間（分）</label>
-        <input id="cpt" type="number" value="42" />
+        <label>CPT</label>
+        <select id="cptInput">
+          <option>13:00</option>
+          <option selected>15:00</option>
+          <option>16:00</option>
+          <option>17:30</option>
+          <option>17:45</option>
+          <option>17:50</option>
+          <option>17:55</option>
+        </select>
 
-        <label>滞留時間（分）</label>
-        <input id="stay" type="number" value="78" />
+        <label>優先商品名（カンマ区切り）</label>
+        <input id="itemsInput" value="モバイルバッテリー, 医薬品, 精密機器" />
 
-        <button onclick="addOrUpdatePackage()">手動で記録する</button>
+        <button onclick="manualAdd()">手動で記録する</button>
       </details>
     </section>
   </main>
