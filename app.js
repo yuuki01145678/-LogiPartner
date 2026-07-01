@@ -56,7 +56,6 @@ const initialState = {
 };
 
 let state = loadState();
-let safetyStatus = "未確認";
 
 function uid() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -386,29 +385,11 @@ function setupEvents() {
     navigate(event.target.value);
   });
 
-  document.getElementById("checkProjectButton").addEventListener("click", () => {
-    const risk = document.getElementById("risk").value;
-    const force = document.getElementById("force").value;
-    const usage = document.getElementById("usage").value;
-    const result = document.getElementById("safetyResult");
 
-    if (risk === "danger" || force === "danger") {
-      safetyStatus = "受付不可";
-      result.innerHTML = `<span class="ng">受付不可：運営規定に抵触する可能性があります</span>`;
-    } else if (usage === "review") {
-      safetyStatus = "要確認";
-      result.innerHTML = `<span class="status">要確認：運営確認を前提に登録できます</span>`;
-    } else {
-      safetyStatus = "確認OK";
-      result.innerHTML = `<span class="ok">確認OK：登録できます</span>`;
-    }
-  });
 
   document.getElementById("projectFormElement").addEventListener("submit", event => {
     event.preventDefault();
     const form = new FormData(event.target);
-    const finalSafety = safetyStatus === "未確認" ? "確認OK" : safetyStatus;
-
     const project = {
       id: uid(),
       company: form.get("company"),
@@ -419,8 +400,8 @@ function setupEvents() {
       detail: form.get("detail"),
       worldText: form.get("worldText"),
       tags: [...state.selectedTags],
-      safety: finalSafety,
-      status: finalSafety === "受付不可" ? "受付不可" : "候補検索可能",
+      safety: "運営確認前",
+      status: "候補検索可能",
       createdAt: new Date().toLocaleString("ja-JP")
     };
 
@@ -433,6 +414,20 @@ function setupEvents() {
 
   document.getElementById("creatorFormElement").addEventListener("submit", event => {
     event.preventDefault();
+
+    const requiredChecks = [
+      "confirmNoAntiSocial",
+      "confirmLegal",
+      "confirmRights",
+      "confirmNg"
+    ];
+
+    const allConfirmed = requiredChecks.every(id => document.getElementById(id)?.checked);
+    if (!allConfirmed) {
+      alert("登録前の確認事項にすべて同意してください。");
+      return;
+    }
+
     const form = new FormData(event.target);
     const works = [form.get("work1"), form.get("work2"), form.get("work3")].filter(Boolean);
 
@@ -448,7 +443,9 @@ function setupEvents() {
       tags: [...state.creatorSelectedTags],
       caution: [...state.creatorNgTags],
       ngText: form.get("ngText"),
-      works: works.length ? works : ["作品URL未登録"]
+      works: works.length ? works : ["作品URL未登録"],
+      complianceConfirmed: true,
+      complianceConfirmedAt: new Date().toLocaleString("ja-JP")
     };
 
     state.creators.push(creator);

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Worldview Match v1.1</title>
+  <title>Worldview Match v1.2</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
@@ -112,14 +112,15 @@
           </form>
 
           <div class="card col-5">
-            <h3>案件確認</h3>
-            <div class="notice">危険・違法・反社会的案件、クリエイターへの不利益が大きい案件は受付対象外です。</div>
-            <div class="field"><label>反社会的・違法・危険要素</label><select id="risk"><option value="safe">なし</option><option value="danger">あり</option></select></div>
-            <div class="field"><label>クリエイターへの強要・不利益条件</label><select id="force"><option value="safe">なし</option><option value="danger">あり</option></select></div>
-            <div class="field"><label>使用範囲</label><select id="usage"><option value="safe">明確</option><option value="review">相談したい</option></select></div>
-            <button id="checkProjectButton" type="button">内容を確認する</button>
-            <h3>確認結果</h3>
-            <p id="safetyResult" class="status">未確認</p>
+            <h3>案件登録について</h3>
+            <div class="notice">
+              案件内容は登録後、運営が確認します。企業側では、制作内容・使用範囲・予算・納期を明確に入力してください。
+            </div>
+            <h3>確認ポイント</h3>
+            <p class="muted">・制作物の使用先が明確か</p>
+            <p class="muted">・希望納期と予算に無理がないか</p>
+            <p class="muted">・クリエイターに相談したい条件があるか</p>
+            <p class="muted">・正式契約は面談・条件合意後に成立します</p>
           </div>
         </div>
       </section>
@@ -187,12 +188,19 @@
           </form>
 
           <div class="card col-5">
-            <h3>登録時に大切にすること</h3>
+            <h3>登録前の確認事項</h3>
             <div class="notice">
-              このフォームは履歴書ではなく、クリエイターの「個展ページ」を作るための入力フォームです。
+              登録者本人の安全とサービスの信用を守るため、以下の確認に同意した方のみ登録できます。
             </div>
+
+            <label class="checkline"><input type="checkbox" id="confirmNoAntiSocial" /> 暴力団・反社会的勢力、またはそれに準ずる関係者ではありません。</label>
+            <label class="checkline"><input type="checkbox" id="confirmLegal" /> 違法行為、詐欺、危険行為、公序良俗に反する案件には関与しません。</label>
+            <label class="checkline"><input type="checkbox" id="confirmRights" /> 登録する作品・URLは、自分が掲載権限を持つものです。</label>
+            <label class="checkline"><input type="checkbox" id="confirmNg" /> NG条件や確認が必要な案件は、正確に登録します。</label>
+
+            <h3>登録時に大切にすること</h3>
+            <p class="muted">このフォームは履歴書ではなく、クリエイターの「個展ページ」を作るための入力フォームです。</p>
             <p class="muted">スキルだけでなく、得意な空気感・思想・制作ポリシーを登録することで、企業が世界観から選べるようになります。</p>
-            <p class="muted">NG条件はマッチング前に確認され、無理な案件提案を避けるために使います。</p>
           </div>
         </div>
       </section>

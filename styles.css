@@ -197,3 +197,18 @@ textarea { min-height: 96px; resize: vertical; }
   .flow { grid-template-columns: 1fr 1fr; }
   .gallery { grid-template-columns: 1fr; }
 }
+
+.checkline {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 12px 0;
+}
+.checkline input {
+  width: auto;
+  margin-top: 4px;
+}
+a { color: var(--accent2); }
