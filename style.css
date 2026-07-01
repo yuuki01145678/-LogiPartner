@@ -1,1 +1,222 @@
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f3f4f6;color:#111827}.app{max-width:430px;margin:0 auto;min-height:100vh;background:#fff;padding:16px;box-sizing:border-box}.header{background:#111827;color:#fff;padding:20px;border-radius:18px;margin-bottom:14px}.header h1{margin:0;font-size:28px}.header p{margin:8px 0 0;font-size:13px;opacity:.9}.camera-card,.summary-card,.list-card,.input-card{background:#fff;border-radius:18px;padding:14px;margin-bottom:14px;border:1px solid #e5e7eb;box-shadow:0 8px 24px rgba(15,23,42,.06)}.section-title{font-weight:900;font-size:15px;margin-bottom:10px}.scanner-wrap{display:block;background:#f8fafc;border:2px dashed #cbd5e1;border-radius:16px;padding:8px;margin-bottom:10px}#reader{width:100%;min-height:230px;overflow:hidden;border-radius:14px;background:#111827}.button-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}button,input,select{width:100%;box-sizing:border-box;padding:13px;border-radius:12px;border:1px solid #d1d5db;font-size:15px;margin-bottom:10px}button{border:none;color:#fff;font-weight:900}.scan-button{background:#2563eb}.stop-button{background:#6b7280}.demo-button{background:#059669}.scan-message{color:#2563eb;font-weight:800;font-size:13px;line-height:1.4}.summary-card h2,.list-card h2{margin:0 0 12px;font-size:18px}.summary{display:grid;grid-template-columns:1fr 1fr 1fr;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden}.summary div{background:#fff;text-align:center;padding:12px 6px;border-right:1px solid #e5e7eb}.summary div:last-child{border-right:none}.summary span{display:block;font-size:13px;font-weight:900}.summary strong{display:block;font-size:26px;margin:8px 0 4px}.summary small{display:block;font-size:11px;font-weight:800}.danger-box small,.danger-box strong{color:#dc2626}.warning-box small,.warning-box strong{color:#d97706}.safe-box small,.safe-box strong{color:#16a34a}.list-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.list-header h2{margin:0}.list-header span{font-size:12px;color:#2563eb;font-weight:900}.package-item{background:#fff;border-left:6px solid #22c55e;border-radius:14px;padding:13px;margin-bottom:10px;border-top:1px solid #e5e7eb;border-right:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb}.package-item.warning{border-left-color:#eab308}.package-item.danger{border-left-color:#ef4444}.package-main{display:flex;justify-content:space-between;gap:8px;align-items:center}.package-main strong{font-size:15px;word-break:break-all}.remaining{font-weight:900;font-size:20px;color:#dc2626;white-space:nowrap}.package-item span{display:block;color:#4b5563;font-size:12px;line-height:1.55;margin-top:4px}label{display:block;font-size:13px;font-weight:900;margin-bottom:6px}
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.app {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: #fff;
+  padding: 14px;
+  box-sizing: border-box;
+}
+
+.header {
+  background: #111827;
+  color: #fff;
+  padding: 18px;
+  border-radius: 18px;
+  margin-bottom: 12px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.header p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  opacity: .9;
+}
+
+.camera-card,
+.summary-card,
+.list-card,
+.input-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 14px;
+  margin-bottom: 14px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
+}
+
+.section-title {
+  font-weight: 900;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.scan-message {
+  color: #2563eb;
+  font-weight: 900;
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.scanner-wrap {
+  display: none;
+  background: #f8fafc;
+  border: 2px dashed #cbd5e1;
+  border-radius: 16px;
+  padding: 8px;
+  margin-bottom: 10px;
+}
+
+#reader {
+  width: 100% !important;
+  height: 300px !important;
+  min-height: 300px !important;
+  overflow: hidden !important;
+  border-radius: 14px;
+  background: #111827;
+}
+
+#reader video,
+#reader canvas {
+  width: 100% !important;
+  height: 300px !important;
+  object-fit: cover !important;
+  border-radius: 14px;
+}
+
+button,
+input,
+select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px;
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+button {
+  border: none;
+  color: white;
+  font-weight: 900;
+}
+
+.scan-button { background: #2563eb; }
+.stop-button { background: #6b7280; }
+.demo-button { background: #059669; }
+
+.summary-card h2,
+.list-card h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.summary div {
+  background: #fff;
+  text-align: center;
+  padding: 12px 5px;
+  border-right: 1px solid #e5e7eb;
+}
+
+.summary div:last-child {
+  border-right: none;
+}
+
+.summary span {
+  display: block;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.summary strong {
+  display: block;
+  font-size: 24px;
+  margin: 8px 0 4px;
+}
+
+.summary small {
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.danger-box strong, .danger-box small { color: #dc2626; }
+.warning-box strong, .warning-box small { color: #d97706; }
+.safe-box strong, .safe-box small { color: #16a34a; }
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.list-header h2 { margin: 0; }
+.list-header span {
+  font-size: 12px;
+  color: #2563eb;
+  font-weight: 900;
+}
+
+.package-item {
+  background: #fff;
+  border-left: 6px solid #22c55e;
+  border-radius: 14px;
+  padding: 13px;
+  margin-bottom: 10px;
+  border-top: 1px solid #e5e7eb;
+  border-right: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.package-item.warning { border-left-color: #eab308; }
+.package-item.danger { border-left-color: #ef4444; }
+
+.package-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.package-main strong {
+  font-size: 15px;
+  word-break: break-all;
+}
+
+.remaining {
+  font-weight: 900;
+  font-size: 20px;
+  color: #dc2626;
+  white-space: nowrap;
+}
+
+.package-item span {
+  display: block;
+  color: #4b5563;
+  font-size: 12px;
+  line-height: 1.55;
+  margin-top: 4px;
+}
+
+details summary {
+  font-weight: 900;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: 900;
+  margin-bottom: 6px;
+}
