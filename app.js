@@ -164,8 +164,13 @@ function renderCreators() {
   area.innerHTML = state.creators.map(creator => `
     <div class="match-card">
       <div>
-        <h3>${creator.name}</h3>
-        <p>${creator.world}</p>
+        <div class="creator-row">
+          ${creator.faceImage ? `<img class="creator-avatar" src="${creator.faceImage}" alt="${creator.name}" />` : `<div class="creator-avatar empty">No Image</div>`}
+          <div>
+            <h3>${creator.name}</h3>
+            <p>${creator.world}</p>
+          </div>
+        </div>
         <p class="muted">${creator.policy}</p>
         <div>${creator.tags.map(tag => `<span class="pill">${tag}</span>`).join("")}</div>
         <p class="muted">参考価格：${creator.price} / 納期目安：${creator.leadTime || "要相談"}</p>
@@ -190,15 +195,21 @@ function showCreatorDetail(creatorId) {
   document.getElementById("creatorDetailArea").innerHTML = `
     <div class="grid">
       <div class="card col-7">
-        <h3>世界観</h3>
-        <p>${creator.world}</p>
+        <div class="creator-row detail">
+          ${creator.faceImage ? `<img class="creator-avatar large" src="${creator.faceImage}" alt="${creator.name}" />` : `<div class="creator-avatar large empty">No Image</div>`}
+          <div>
+            <h3>世界観</h3>
+            <p>${creator.world}</p>
+          </div>
+        </div>
         <h3>制作ポリシー</h3>
         <p class="muted">${creator.policy}</p>
         <div>${creator.tags.map(tag => `<span class="pill">${tag}</span>`).join("")}</div>
         <h3>作品ギャラリー</h3>
         <div class="gallery">
-          ${(creator.works || []).map(work => `<div class="work">${work}</div>`).join("") || `<div class="work">作品未登録</div>`}
+          ${(creator.workImages || []).map((img, idx) => img ? `<div class="work image"><img src="${img}" alt="work ${idx + 1}" /></div>` : "").join("") || (creator.works || []).map(work => `<div class="work">${work}</div>`).join("") || `<div class="work">作品未登録</div>`}
         </div>
+        ${creator.workNote ? `<p class="muted">${creator.workNote}</p>` : ""}
       </div>
       <div class="card col-5">
         <h3>依頼前の確認</h3>
@@ -372,6 +383,39 @@ function render() {
   renderActiveProject();
 }
 
+
+let creatorWizardStep = 1;
+const creatorDraftImages = { face: "", work1: "", work2: "", work3: "" };
+
+function setCreatorWizardStep(step) {
+  creatorWizardStep = Math.max(1, Math.min(4, step));
+  document.querySelectorAll("[data-wizard-page]").forEach(page => {
+    page.classList.toggle("hidden", page.dataset.wizardPage !== String(creatorWizardStep));
+  });
+  document.querySelectorAll("[data-step-indicator]").forEach(item => {
+    item.classList.toggle("on", item.dataset.stepIndicator === String(creatorWizardStep));
+  });
+
+  const back = document.getElementById("creatorBackButton");
+  const next = document.getElementById("creatorNextButton");
+  const submit = document.getElementById("creatorSubmitButton");
+  if (back) back.style.visibility = creatorWizardStep === 1 ? "hidden" : "visible";
+  if (next) next.classList.toggle("hidden", creatorWizardStep === 4);
+  if (submit) submit.classList.toggle("hidden", creatorWizardStep !== 4);
+}
+
+function previewImage(input, targetId, key) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = event => {
+    creatorDraftImages[key] = event.target.result;
+    const target = document.getElementById(targetId);
+    target.innerHTML = `<img src="${event.target.result}" alt="preview" />`;
+  };
+  reader.readAsDataURL(file);
+}
+
 function setupEvents() {
   document.querySelectorAll(".menu button").forEach(button => {
     button.addEventListener("click", () => navigate(button.dataset.page));
@@ -429,7 +473,6 @@ function setupEvents() {
     }
 
     const form = new FormData(event.target);
-    const works = [form.get("work1"), form.get("work2"), form.get("work3")].filter(Boolean);
 
     const creator = {
       id: uid(),
@@ -437,13 +480,16 @@ function setupEvents() {
       email: form.get("email"),
       url: form.get("url"),
       price: form.get("price"),
-      leadTime: form.get("leadTime"),
+      leadTime: "要相談",
       world: form.get("world"),
       policy: form.get("policy"),
       tags: [...state.creatorSelectedTags],
       caution: [...state.creatorNgTags],
-      ngText: form.get("ngText"),
-      works: works.length ? works : ["作品URL未登録"],
+      ngText: "登録時の確認事項に同意済み",
+      works: ["提出作品1", "提出作品2", "提出作品3"],
+      workImages: [creatorDraftImages.work1, creatorDraftImages.work2, creatorDraftImages.work3].filter(Boolean),
+      faceImage: creatorDraftImages.face,
+      workNote: form.get("workNote"),
       complianceConfirmed: true,
       complianceConfirmedAt: new Date().toLocaleString("ja-JP")
     };
@@ -453,6 +499,18 @@ function setupEvents() {
     alert("クリエイタープロフィールを登録しました。");
     navigate("creatorList");
   });
+
+
+  document.getElementById("creatorBackButton").addEventListener("click", () => setCreatorWizardStep(creatorWizardStep - 1));
+  document.getElementById("creatorNextButton").addEventListener("click", () => setCreatorWizardStep(creatorWizardStep + 1));
+
+  const creatorForm = document.getElementById("creatorFormElement");
+  creatorForm.elements["faceImage"].addEventListener("change", event => previewImage(event.target, "facePreview", "face"));
+  creatorForm.elements["workFile1"].addEventListener("change", event => previewImage(event.target, "workPreview1", "work1"));
+  creatorForm.elements["workFile2"].addEventListener("change", event => previewImage(event.target, "workPreview2", "work2"));
+  creatorForm.elements["workFile3"].addEventListener("change", event => previewImage(event.target, "workPreview3", "work3"));
+
+  setCreatorWizardStep(1);
 
   document.getElementById("runMatchButton").addEventListener("click", runMatch);
 }

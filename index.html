@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Worldview Match v1.2</title>
+  <title>Worldview Match v1.3</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
@@ -158,51 +158,92 @@
 
       <section id="creatorRegister" class="page hidden">
         <div class="page-head">
-          <div><h2>クリエイター登録</h2><p>本人が自分の個性・世界観・受けない案件を登録するフォームです。</p></div>
+          <div>
+            <h2>クリエイター登録</h2>
+            <p>顔・名前・得意なイメージ・作品を登録する本人向けフォームです。</p>
+          </div>
+          <button class="ghost" data-jump="creatorList">一覧へ戻る</button>
         </div>
 
-        <div class="grid">
-          <form id="creatorFormElement" class="card col-7">
-            <h3>基本プロフィール</h3>
-            <div class="field"><label>活動名</label><input name="name" required value="Noir Atelier" /></div>
-            <div class="field"><label>連絡先メール</label><input name="email" type="email" placeholder="example@example.com" /></div>
-            <div class="field"><label>SNS / ポートフォリオURL</label><input name="url" placeholder="https://..." /></div>
-            <div class="field"><label>参考価格</label><input name="price" value="70,000円〜" /></div>
-            <div class="field"><label>納期目安</label><input name="leadTime" value="2〜4週間" /></div>
-
-            <h3>世界観・制作方針</h3>
-            <div class="field"><label>得意な世界観</label><textarea name="world">シックで重厚感のある世界観、静かな高級感、余白を活かした表現が得意。</textarea></div>
-            <div class="field"><label>制作ポリシー</label><textarea name="policy">流行に寄せすぎず、ブランドの芯に残る表現を大切にしています。</textarea></div>
-            <div class="field"><label>得意タグ</label><div id="creatorTagArea" class="tags"></div></div>
-
-            <h3>作品ギャラリー</h3>
-            <div class="field"><label>作品URL 1</label><input name="work1" placeholder="https://..." /></div>
-            <div class="field"><label>作品URL 2</label><input name="work2" placeholder="https://..." /></div>
-            <div class="field"><label>作品URL 3</label><input name="work3" placeholder="https://..." /></div>
-
-            <h3>受けない案件・確認が必要な条件</h3>
-            <div class="field"><label>NG条件</label><div id="creatorNgArea" class="tags"></div></div>
-            <div class="field"><label>その他NG・補足</label><textarea name="ngText">AI学習利用、過度な修正回数、実績非公開案件は事前相談。</textarea></div>
-
-            <button class="primary" type="submit">プロフィールを登録する</button>
-          </form>
-
-          <div class="card col-5">
-            <h3>登録前の確認事項</h3>
-            <div class="notice">
-              登録者本人の安全とサービスの信用を守るため、以下の確認に同意した方のみ登録できます。
+        <form id="creatorFormElement">
+          <div class="card wizard">
+            <div class="wizard-steps">
+              <span class="wizard-step on" data-step-indicator="1">1. 基本情報</span>
+              <span class="wizard-step" data-step-indicator="2">2. 得意なイメージ</span>
+              <span class="wizard-step" data-step-indicator="3">3. 作品提出</span>
+              <span class="wizard-step" data-step-indicator="4">4. 確認事項</span>
             </div>
 
-            <label class="checkline"><input type="checkbox" id="confirmNoAntiSocial" /> 暴力団・反社会的勢力、またはそれに準ずる関係者ではありません。</label>
-            <label class="checkline"><input type="checkbox" id="confirmLegal" /> 違法行為、詐欺、危険行為、公序良俗に反する案件には関与しません。</label>
-            <label class="checkline"><input type="checkbox" id="confirmRights" /> 登録する作品・URLは、自分が掲載権限を持つものです。</label>
-            <label class="checkline"><input type="checkbox" id="confirmNg" /> NG条件や確認が必要な案件は、正確に登録します。</label>
+            <div class="wizard-page" data-wizard-page="1">
+              <h3>基本情報</h3>
+              <div class="grid">
+                <div class="col-6">
+                  <div class="field"><label>顔写真 / アイコン画像</label><input name="faceImage" type="file" accept="image/*" /></div>
+                  <div class="face-preview" id="facePreview">顔写真プレビュー</div>
+                </div>
+                <div class="col-6">
+                  <div class="field"><label>活動名 / 名前</label><input name="name" required value="Noir Atelier" /></div>
+                  <div class="field"><label>連絡先メール</label><input name="email" type="email" placeholder="example@example.com" /></div>
+                  <div class="field"><label>SNS / ポートフォリオURL</label><input name="url" placeholder="https://..." /></div>
+                  <div class="field"><label>参考価格</label><input name="price" value="70,000円〜" /></div>
+                </div>
+              </div>
+            </div>
 
-            <h3>登録時に大切にすること</h3>
-            <p class="muted">このフォームは履歴書ではなく、クリエイターの「個展ページ」を作るための入力フォームです。</p>
-            <p class="muted">スキルだけでなく、得意な空気感・思想・制作ポリシーを登録することで、企業が世界観から選べるようになります。</p>
+            <div class="wizard-page hidden" data-wizard-page="2">
+              <h3>どんなイメージが得意ですか？</h3>
+              <div class="field">
+                <label>得意なイメージタグ</label>
+                <div id="creatorTagArea" class="tags"></div>
+              </div>
+              <div class="field">
+                <label>得意な世界観を文章で教えてください</label>
+                <textarea name="world">シックで重厚感のある世界観、静かな高級感、余白を活かした表現が得意。</textarea>
+              </div>
+              <div class="field">
+                <label>制作で大切にしていること</label>
+                <textarea name="policy">流行に寄せすぎず、ブランドの芯に残る表現を大切にしています。</textarea>
+              </div>
+            </div>
+
+            <div class="wizard-page hidden" data-wizard-page="3">
+              <h3>作品を2〜3枚提出</h3>
+              <p class="muted">今はブラウザ内でプレビューする形です。本番ではサーバーに画像保存します。</p>
+              <div class="grid">
+                <div class="col-4">
+                  <div class="field"><label>作品1</label><input name="workFile1" type="file" accept="image/*" /></div>
+                  <div class="work-preview" id="workPreview1">作品1</div>
+                </div>
+                <div class="col-4">
+                  <div class="field"><label>作品2</label><input name="workFile2" type="file" accept="image/*" /></div>
+                  <div class="work-preview" id="workPreview2">作品2</div>
+                </div>
+                <div class="col-4">
+                  <div class="field"><label>作品3</label><input name="workFile3" type="file" accept="image/*" /></div>
+                  <div class="work-preview" id="workPreview3">作品3</div>
+                </div>
+              </div>
+              <div class="field"><label>作品についての補足</label><textarea name="workNote">ブランドビジュアル、SNS用イラスト、キービジュアル制作の実績があります。</textarea></div>
+            </div>
+
+            <div class="wizard-page hidden" data-wizard-page="4">
+              <h3>登録前の確認事項</h3>
+              <div class="notice">
+                登録者本人の安全とサービスの信用を守るため、以下の確認に同意した方のみ登録できます。
+              </div>
+              <label class="checkline"><input type="checkbox" id="confirmNoAntiSocial" /> 暴力団・反社会的勢力、またはそれに準ずる関係者ではありません。</label>
+              <label class="checkline"><input type="checkbox" id="confirmLegal" /> 違法行為、詐欺、危険行為、公序良俗に反する案件には関与しません。</label>
+              <label class="checkline"><input type="checkbox" id="confirmRights" /> 提出する作品は、自分が掲載権限を持つものです。</label>
+              <label class="checkline"><input type="checkbox" id="confirmNg" /> 受けられない案件や確認が必要な条件は、正確に申告します。</label>
+            </div>
+
+            <div class="wizard-actions">
+              <button type="button" class="ghost" id="creatorBackButton">← 戻る</button>
+              <button type="button" class="primary" id="creatorNextButton">次へ</button>
+              <button type="submit" class="primary hidden" id="creatorSubmitButton">プロフィールを登録する</button>
+            </div>
           </div>
-        </div>
+        </form>
       </section>
 
       <section id="creatorDetail" class="page hidden">
