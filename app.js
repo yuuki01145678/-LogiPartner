@@ -1,302 +1,316 @@
-let toteRecords = [];
-let currentFilter = "all";
+const tags = ["幻想的","温かい","ダーク","ポップ","和風","サイバー","手描き","水彩","アニメ調","リアル","ミニマル","レトロ","高級感","かわいい","クール","ストリート","独創的","透明感"];
 
-const DEMO_CSV = `コンテナ,CPT,ASIN,商品名,数量
-tsOBdy1F150,15:00,B0CPLNTR5C,モバイルバッテリー,1
-tsOBdy1F150,15:00,B0CPLNTR5C,モバイルバッテリー,1
-tsOBdy1F150,15:00,B0AAA111,医薬品,1
-tsOBdy1F151,16:00,B0BBB222,食品,2
-tsOBdy1F151,16:00,B0CCC333,精密機器,1
-tsOBdy1F152,17:30,B0DDD444,大型商品,1
-tsOBdy1F153,17:45,B0EEE555,ギフト商品,1
-tsOBdy1F153,17:45,B0FFF666,割れ物,1
-tsOBdy1F154,17:55,B0GGG777,当日優先品,3`;
-
-function loadDemoData() {
-  processCsv(DEMO_CSV);
-  document.getElementById("loadMessage").textContent = "デモCSVを読み込みました。";
-}
-
-function loadCsv(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    processCsv(reader.result);
-    document.getElementById("loadMessage").textContent = file.name + " を読み込みました。";
-  };
-  reader.readAsText(file, "UTF-8");
-}
-
-function processCsv(text) {
-  const rows = parseCsv(text);
-  if (rows.length < 2) {
-    alert("CSVの中身が読み込めませんでした。");
-    return;
-  }
-
-  const headers = rows[0].map(h => normalizeHeader(h));
-  const dataRows = rows.slice(1).filter(r => r.some(c => String(c).trim() !== ""));
-
-  const idx = {
-    tote: findIndex(headers, ["コンテナ", "container", "tote", "トート"]),
-    cpt: findIndex(headers, ["cpt", "CPT", "出荷時間", "締め時間"]),
-    asin: findIndex(headers, ["asin", "ASIN"]),
-    title: findIndex(headers, ["商品名", "title", "asin_titles", "ASIN_TITLES", "品名"]),
-    qty: findIndex(headers, ["数量", "quantity", "qty", "個数"])
-  };
-
-  if (idx.tote < 0) {
-    alert("トート/コンテナ列が見つかりませんでした。");
-    return;
-  }
-
-  const grouped = {};
-
-  for (const row of dataRows) {
-    const tote = getCell(row, idx.tote) || "不明トート";
-    const cpt = getCell(row, idx.cpt) || guessCptFromNow();
-    const title = getCell(row, idx.title) || getCell(row, idx.asin) || "商品名なし";
-    const qty = Number(getCell(row, idx.qty)) || 1;
-
-    if (!grouped[tote]) {
-      grouped[tote] = {
-        toteId: tote,
-        cpt,
-        items: {},
-        totalQty: 0,
-        checked: false
-      };
+const initialState = {
+  activeProjectId: null,
+  selectedTags: ["幻想的", "温かい", "独創的"],
+  projects: [],
+  creators: [
+    {
+      id: "creator_aoi",
+      name: "Aoi",
+      price: "50,000円〜",
+      world: "幻想的、透明感、静かな感情表現、少し儚い雰囲気が得意。",
+      policy: "流行よりも、ブランドの奥にある空気を描きたい。",
+      tags: ["幻想的", "透明感", "水彩", "温かい"],
+      caution: ["成人向け", "AI学習利用"]
+    },
+    {
+      id: "creator_riku",
+      name: "Riku",
+      price: "80,000円〜",
+      world: "ストリート、尖った構図、若者向けの強いビジュアルが得意。",
+      policy: "見た瞬間に記憶に残る強さを大切にしています。",
+      tags: ["ストリート", "クール", "独創的", "ダーク"],
+      caution: ["政治", "宗教"]
+    },
+    {
+      id: "creator_mika",
+      name: "Mika",
+      price: "40,000円〜",
+      world: "かわいい、ポップ、親しみやすいキャラクター表現が得意。",
+      policy: "見る人が少し元気になるデザインを作りたい。",
+      tags: ["かわいい", "ポップ", "温かい", "アニメ調"],
+      caution: ["暴力表現"]
     }
+  ],
+  proposals: []
+};
 
-    grouped[tote].cpt = grouped[tote].cpt || cpt;
-    grouped[tote].items[title] = (grouped[tote].items[title] || 0) + qty;
-    grouped[tote].totalQty += qty;
-  }
+let state = loadState();
+let safetyStatus = "未確認";
 
-  toteRecords = Object.values(grouped).map(makeToteRecord);
-  sortRecords();
-  renderAll();
+function uid() {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
-function normalizeHeader(h) {
-  return String(h || "").trim().replace(/^\ufeff/, "");
+function loadState() {
+  const saved = localStorage.getItem("worldview_match_v1");
+  return saved ? JSON.parse(saved) : structuredClone(initialState);
 }
 
-function findIndex(headers, names) {
-  const lowerHeaders = headers.map(h => h.toLowerCase());
-  for (const name of names) {
-    const exact = lowerHeaders.indexOf(String(name).toLowerCase());
-    if (exact >= 0) return exact;
-  }
-  for (let i = 0; i < lowerHeaders.length; i++) {
-    for (const name of names) {
-      if (lowerHeaders[i].includes(String(name).toLowerCase())) return i;
-    }
-  }
-  return -1;
+function saveState() {
+  localStorage.setItem("worldview_match_v1", JSON.stringify(state));
+  render();
 }
 
-function getCell(row, idx) {
-  if (idx < 0 || idx >= row.length) return "";
-  return String(row[idx] || "").trim();
+function navigate(pageId) {
+  document.querySelectorAll(".page").forEach(page => page.classList.add("hidden"));
+  document.getElementById(pageId).classList.remove("hidden");
+  document.querySelectorAll(".menu button").forEach(button => {
+    button.classList.toggle("active", button.dataset.page === pageId);
+  });
+  const mobile = document.getElementById("mobileMenu");
+  if (mobile) mobile.value = pageId;
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function parseCsv(text) {
-  const rows = [];
-  let row = [];
-  let cell = "";
-  let inQuotes = false;
-
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    const next = text[i + 1];
-
-    if (ch === '"' && inQuotes && next === '"') {
-      cell += '"';
-      i++;
-    } else if (ch === '"') {
-      inQuotes = !inQuotes;
-    } else if (ch === "," && !inQuotes) {
-      row.push(cell);
-      cell = "";
-    } else if ((ch === "\n" || ch === "\r") && !inQuotes) {
-      if (ch === "\r" && next === "\n") i++;
-      row.push(cell);
-      rows.push(row);
-      row = [];
-      cell = "";
-    } else {
-      cell += ch;
-    }
-  }
-
-  if (cell || row.length) {
-    row.push(cell);
-    rows.push(row);
-  }
-
-  return rows;
+function getActiveProject() {
+  return state.projects.find(project => project.id === state.activeProjectId) || null;
 }
 
-function makeToteRecord(raw) {
-  const remain = minutesUntil(raw.cpt);
-  const level = getLevel(remain);
-  const itemEntries = Object.entries(raw.items).sort((a, b) => b[1] - a[1]);
+function renderTags() {
+  const area = document.getElementById("projectTagArea");
+  if (!area) return;
+  area.innerHTML = tags.map(tag => {
+    const active = state.selectedTags.includes(tag) ? "on" : "";
+    return `<span class="tag ${active}" data-tag="${tag}">${tag}</span>`;
+  }).join("");
 
-  return {
-    ...raw,
-    remain,
-    level,
-    priority: level === "danger" ? 1 : level === "warning" ? 2 : 3,
-    itemEntries,
-    priorityCount: itemEntries.reduce((sum, item) => sum + item[1], 0)
-  };
-}
-
-function minutesUntil(cpt) {
-  const now = new Date();
-  const time = String(cpt).trim();
-  const match = time.match(/(\d{1,2}):(\d{2})/);
-  if (!match) return 9999;
-
-  const target = new Date(now);
-  target.setHours(Number(match[1]), Number(match[2]), 0, 0);
-  return Math.round((target - now) / 60000);
-}
-
-function getLevel(remain) {
-  if (remain <= 120) return "danger";
-  if (remain <= 180) return "warning";
-  return "safe";
-}
-
-function formatRemain(min) {
-  if (min === 9999) return "不明";
-  if (min < 0) return "超過" + Math.abs(min) + "分";
-  if (min < 60) return "あと" + min + "分";
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  return "あと" + h + "時間" + m + "分";
-}
-
-function guessCptFromNow() {
-  const cpts = ["13:00", "15:00", "16:00", "17:30", "17:45", "17:50", "17:55"];
-  for (const cpt of cpts) {
-    if (minutesUntil(cpt) >= 0) return cpt;
-  }
-  return cpts[cpts.length - 1];
-}
-
-function sortRecords() {
-  toteRecords.sort((a, b) => {
-    if (a.checked !== b.checked) return a.checked ? 1 : -1;
-    return a.priority - b.priority || a.remain - b.remain || b.priorityCount - a.priorityCount;
+  area.querySelectorAll(".tag").forEach(element => {
+    element.addEventListener("click", () => {
+      const tag = element.dataset.tag;
+      state.selectedTags = state.selectedTags.includes(tag)
+        ? state.selectedTags.filter(item => item !== tag)
+        : [...state.selectedTags, tag];
+      saveState();
+    });
   });
 }
 
-function renderAll() {
-  renderSummary();
-  renderCptSummary();
-  renderToteList();
-}
+function renderProjects() {
+  const area = document.getElementById("projectListArea");
+  if (!area) return;
 
-function renderSummary() {
-  document.getElementById("dangerCount").textContent = toteRecords.filter(t => t.level === "danger").length;
-  document.getElementById("warningCount").textContent = toteRecords.filter(t => t.level === "warning").length;
-  document.getElementById("safeCount").textContent = toteRecords.filter(t => t.level === "safe").length;
-}
-
-function renderCptSummary() {
-  const box = document.getElementById("cptSummary");
-  if (!toteRecords.length) {
-    box.innerHTML = '<div class="empty">CSVを読み込むと表示されます。</div>';
+  if (state.projects.length === 0) {
+    area.innerHTML = `<p class="muted">案件はまだ登録されていません。まずは案件登録からお進みください。</p>`;
     return;
   }
 
-  const grouped = {};
-  for (const t of toteRecords) {
-    if (!grouped[t.cpt]) grouped[t.cpt] = { cpt: t.cpt, totes: 0, qty: 0, danger: 0, remain: t.remain };
-    grouped[t.cpt].totes++;
-    grouped[t.cpt].qty += t.totalQty;
-    if (t.level === "danger") grouped[t.cpt].danger++;
-  }
-
-  const list = Object.values(grouped).sort((a, b) => a.remain - b.remain);
-
-  box.innerHTML = list.map(g => `
-    <div class="cpt-item">
-      <div class="cpt-main">
-        <strong>CPT ${g.cpt}</strong>
-        <span>${formatRemain(g.remain)}</span>
+  area.innerHTML = state.projects.map(project => `
+    <div class="match-card">
+      <div>
+        <h3>${project.title}</h3>
+        <p>${project.company} / ${project.person}</p>
+        <p class="muted">${project.detail}</p>
+        <div>${project.tags.map(tag => `<span class="pill">${tag}</span>`).join("")}</div>
+        <p class="muted">予算：${project.budget} / 納期：${project.deadline}</p>
+        <p>進行状況：<span class="status">${project.status}</span></p>
       </div>
-      <small>トート ${g.totes}件 / 商品 ${g.qty}個 / 危険 ${g.danger}件</small>
+      <div>
+        <button class="primary" data-select-project="${project.id}">この案件で候補を見る</button>
+      </div>
+    </div>
+  `).join("");
+
+  area.querySelectorAll("[data-select-project]").forEach(button => {
+    button.addEventListener("click", () => {
+      state.activeProjectId = button.dataset.selectProject;
+      saveState();
+      navigate("creatorSearch");
+    });
+  });
+}
+
+function renderCreators() {
+  const area = document.getElementById("creatorListArea");
+  if (!area) return;
+
+  area.innerHTML = state.creators.map(creator => `
+    <div class="match-card">
+      <div>
+        <h3>${creator.name}</h3>
+        <p>${creator.world}</p>
+        <p class="muted">${creator.policy}</p>
+        <div>${creator.tags.map(tag => `<span class="pill">${tag}</span>`).join("")}</div>
+        <p class="muted">参考価格：${creator.price}</p>
+        <p class="muted">確認が必要な条件：${creator.caution.join(" / ") || "なし"}</p>
+      </div>
     </div>
   `).join("");
 }
 
-function setFilter(filter) {
-  currentFilter = filter;
-  renderToteList();
+function scoreCreator(creator, project) {
+  const matched = creator.tags.filter(tag => project.tags.includes(tag)).length;
+  return Math.round((matched / Math.max(project.tags.length, 1)) * 100);
 }
 
-function renderToteList() {
-  const box = document.getElementById("toteList");
+function runMatch() {
+  const project = getActiveProject();
+  const area = document.getElementById("matchArea");
 
-  if (!toteRecords.length) {
-    box.innerHTML = '<div class="empty">CSVを読み込むと表示されます。</div>';
+  if (!project) {
+    alert("先に案件一覧から案件を選んでください。");
     return;
   }
 
-  let list = [...toteRecords];
-  if (currentFilter === "danger") list = list.filter(t => t.level === "danger");
-  if (currentFilter === "unchecked") list = list.filter(t => !t.checked);
-
-  if (!list.length) {
-    box.innerHTML = '<div class="empty">該当するトートはありません。</div>';
+  if (project.status === "受付不可") {
+    alert("この案件は受付不可です。");
     return;
   }
 
-  box.innerHTML = list.map(t => `
-    <div class="tote-item ${t.level} ${t.checked ? "checked" : ""}">
-      <div class="tote-top">
-        <strong>${statusLabel(t.level)} ${t.toteId}</strong>
-        <div class="remaining">${formatRemain(t.remain)}</div>
+  const rankedCreators = state.creators
+    .map(creator => ({ ...creator, score: scoreCreator(creator, project) }))
+    .sort((a, b) => b.score - a.score);
+
+  area.innerHTML = rankedCreators.map(creator => `
+    <div class="match-card">
+      <div>
+        <h3>${creator.name}</h3>
+        <p>${creator.world}</p>
+        <p class="muted">${creator.policy}</p>
+        <div>${creator.tags.map(tag => `<span class="pill">${tag}</span>`).join("")}</div>
+        <p class="muted">参考価格：${creator.price}</p>
       </div>
-      <div class="tote-meta">CPT：${t.cpt} / 商品合計：${t.totalQty}個 / 優先商品：${t.priorityCount}個</div>
-      <div class="item-list">
-        ${t.itemEntries.slice(0, 5).map(([name, qty]) => `<div class="item-chip">${escapeHtml(name)} ×${qty}</div>`).join("")}
+      <div>
+        <div class="score">${creator.score}%</div>
+        <button class="primary" data-send-proposal="${creator.id}">案件提案を送る</button>
       </div>
-      <button class="check-btn" onclick="toggleChecked('${escapeAttr(t.toteId)}')">${t.checked ? "未確認に戻す" : "確認済みにする"}</button>
+    </div>
+  `).join("");
+
+  area.querySelectorAll("[data-send-proposal]").forEach(button => {
+    button.addEventListener("click", () => sendProposal(button.dataset.sendProposal));
+  });
+}
+
+function sendProposal(creatorId) {
+  const project = getActiveProject();
+  const creator = state.creators.find(item => item.id === creatorId);
+
+  state.proposals.push({
+    id: uid(),
+    creatorId,
+    creatorName: creator.name,
+    projectId: project.id,
+    company: project.company,
+    projectTitle: project.title,
+    status: "運営確認中",
+    flow: 1,
+    memo: "案件提案を受け付けました。運営確認後、クリエイターへ共有します。",
+    createdAt: new Date().toLocaleString("ja-JP")
+  });
+
+  project.status = "案件提案済み";
+  saveState();
+  alert(`${creator.name}さんへの案件提案を受け付けました。`);
+  navigate("proposalStatus");
+}
+
+function renderProposals() {
+  const area = document.getElementById("proposalArea");
+  if (!area) return;
+
+  if (state.proposals.length === 0) {
+    area.innerHTML = `<p class="muted">案件提案はまだありません。クリエイター検索から案件提案を送ることができます。</p>`;
+    return;
+  }
+
+  area.innerHTML = state.proposals.map(proposal => `
+    <div class="match-card">
+      <div>
+        <h3>${proposal.creatorName}</h3>
+        <p>${proposal.company} / ${proposal.projectTitle}</p>
+        <p>進行状況：<span class="status">${proposal.status}</span></p>
+        <p class="muted">${proposal.memo}</p>
+        <div class="flow">
+          <span class="now">運営確認</span>
+          <span>クリエイター確認</span>
+          <span>面談調整</span>
+          <span>面談</span>
+          <span>条件合意</span>
+          <span>正式契約</span>
+        </div>
+      </div>
     </div>
   `).join("");
 }
 
-function statusLabel(level) {
-  if (level === "danger") return "🔴";
-  if (level === "warning") return "🟡";
-  return "🟢";
+function renderActiveProject() {
+  const element = document.getElementById("activeProjectName");
+  if (!element) return;
+  const project = getActiveProject();
+  element.textContent = project ? project.title : "未選択";
 }
 
-function toggleChecked(toteId) {
-  const target = toteRecords.find(t => t.toteId === toteId);
-  if (!target) return;
-  target.checked = !target.checked;
-  sortRecords();
-  renderAll();
+function render() {
+  renderTags();
+  renderProjects();
+  renderCreators();
+  renderProposals();
+  renderActiveProject();
 }
 
-function escapeHtml(str) {
-  return String(str).replace(/[&<>"']/g, s => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[s]));
+function setupEvents() {
+  document.querySelectorAll(".menu button").forEach(button => {
+    button.addEventListener("click", () => navigate(button.dataset.page));
+  });
+
+  document.querySelectorAll("[data-jump]").forEach(button => {
+    button.addEventListener("click", () => navigate(button.dataset.jump));
+  });
+
+  document.getElementById("mobileMenu").addEventListener("change", event => {
+    navigate(event.target.value);
+  });
+
+  document.getElementById("checkProjectButton").addEventListener("click", () => {
+    const risk = document.getElementById("risk").value;
+    const force = document.getElementById("force").value;
+    const usage = document.getElementById("usage").value;
+    const result = document.getElementById("safetyResult");
+
+    if (risk === "danger" || force === "danger") {
+      safetyStatus = "受付不可";
+      result.innerHTML = `<span class="ng">受付不可：運営規定に抵触する可能性があります</span>`;
+    } else if (usage === "review") {
+      safetyStatus = "要確認";
+      result.innerHTML = `<span class="status">要確認：運営確認を前提に登録できます</span>`;
+    } else {
+      safetyStatus = "確認OK";
+      result.innerHTML = `<span class="ok">確認OK：登録できます</span>`;
+    }
+  });
+
+  document.getElementById("projectFormElement").addEventListener("submit", event => {
+    event.preventDefault();
+    const form = new FormData(event.target);
+    const finalSafety = safetyStatus === "未確認" ? "確認OK" : safetyStatus;
+
+    const project = {
+      id: uid(),
+      company: form.get("company"),
+      person: form.get("person"),
+      title: form.get("title"),
+      budget: form.get("budget"),
+      deadline: form.get("deadline"),
+      detail: form.get("detail"),
+      worldText: form.get("worldText"),
+      tags: [...state.selectedTags],
+      safety: finalSafety,
+      status: finalSafety === "受付不可" ? "受付不可" : "候補検索可能",
+      createdAt: new Date().toLocaleString("ja-JP")
+    };
+
+    state.projects.push(project);
+    state.activeProjectId = project.id;
+    saveState();
+    alert("案件を登録しました。候補検索へ進めます。");
+    navigate("projectList");
+  });
+
+  document.getElementById("runMatchButton").addEventListener("click", runMatch);
 }
 
-function escapeAttr(str) {
-  return String(str).replace(/'/g, "\\'");
-}
+setupEvents();
+render();

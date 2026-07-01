@@ -3,83 +3,183 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LogiPartner Ver.3.0 CSV</title>
-  <link rel="stylesheet" href="./style.css" />
+  <title>Worldview Match</title>
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <main class="app">
-    <section class="header">
-      <h1>LogiPartner</h1>
-      <p>Ver.3.0｜Rodeo CSV取り込み版</p>
-    </section>
-
-    <section class="upload-card">
-      <h2>📂 CSVを読み込む</h2>
-      <p>Rodeoから出したCSVを選ぶと、トートごとに危険度を自動集計します。</p>
-      <input id="csvFile" type="file" accept=".csv,text/csv" onchange="loadCsv(event)" />
-      <button onclick="loadDemoData()">デモCSVで確認</button>
-      <div id="loadMessage" class="load-message">まだCSVは読み込まれていません。</div>
-    </section>
-
-    <section class="summary-card">
-      <h2>危険度サマリー</h2>
-      <div class="summary">
-        <div class="danger-box">
-          <span>🔴 危険</span>
-          <strong id="dangerCount">0</strong>
-          <small>2時間以内</small>
-        </div>
-        <div class="warning-box">
-          <span>🟡 注意</span>
-          <strong id="warningCount">0</strong>
-          <small>2〜3時間</small>
-        </div>
-        <div class="safe-box">
-          <span>🟢 通常</span>
-          <strong id="safeCount">0</strong>
-          <small>3時間以上</small>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">W</div>
+        <div>
+          <h1>Worldview Match</h1>
+          <p>Creative Matching Platform</p>
         </div>
       </div>
-    </section>
 
-    <section class="cpt-card">
-      <h2>CPT別集計</h2>
-      <div id="cptSummary" class="cpt-summary">
-        <div class="empty">CSVを読み込むと表示されます。</div>
+      <select class="mobile-menu" id="mobileMenu">
+        <option value="home">ホーム</option>
+        <option value="projectForm">案件登録</option>
+        <option value="projectList">案件一覧</option>
+        <option value="creatorSearch">クリエイター検索</option>
+        <option value="proposalStatus">提案状況</option>
+        <option value="creatorList">クリエイター一覧</option>
+      </select>
+
+      <nav class="menu">
+        <div class="menu-title">CLIENT</div>
+        <button class="active" data-page="home">ホーム <small>概要</small></button>
+        <button data-page="projectForm">案件登録 <small>入力</small></button>
+        <button data-page="projectList">案件一覧 <small>確認</small></button>
+        <button data-page="creatorSearch">クリエイター検索 <small>候補</small></button>
+        <button data-page="proposalStatus">提案状況 <small>進行</small></button>
+        <div class="menu-title">PORTFOLIO</div>
+        <button data-page="creatorList">クリエイター一覧 <small>世界観</small></button>
+      </nav>
+
+      <div class="side-policy">
+        <b>運営規定</b><br />
+        候補選択のみで契約成立とはしません。運営確認・本人確認・面談・条件合意を経て正式契約とします。
       </div>
-    </section>
+    </aside>
 
-    <section class="list-card">
-      <div class="list-header">
-        <h2>トート一覧</h2>
-        <span>危険順・CPT順</span>
-      </div>
+    <main class="main">
+      <section id="home" class="page">
+        <div class="grid">
+          <div class="card hero col-12">
+            <span class="badge">Creative Matching Platform</span>
+            <h2>世界観から、最適なクリエイターをご提案します。</h2>
+            <p>
+              企業が求める雰囲気・思想・ブランドイメージを入力すると、
+              世界観の近いイラストレーター候補を抽出。提案後は運営が間に入り、
+              面談・条件合意まで丁寧に進行します。
+            </p>
+            <div class="actions">
+              <button class="primary" data-jump="projectForm">案件を登録する</button>
+              <button class="ghost" data-jump="creatorList">クリエイターを見る</button>
+            </div>
+          </div>
 
-      <div class="filter-row">
-        <button onclick="setFilter('all')" id="filterAll">全部</button>
-        <button onclick="setFilter('danger')" id="filterDanger">危険</button>
-        <button onclick="setFilter('unchecked')" id="filterUnchecked">未確認</button>
-      </div>
+          <div class="card col-12">
+            <h3>ご利用の流れ</h3>
+            <div class="flow">
+              <span>1. 案件登録</span>
+              <span>2. 世界観分析</span>
+              <span class="now">3. 候補提案</span>
+              <span>4. 運営確認</span>
+              <span>5. 面談</span>
+              <span>6. 正式契約</span>
+            </div>
+          </div>
 
-      <div id="toteList" class="tote-list">
-        <div class="empty">CSVを読み込むと表示されます。</div>
-      </div>
-    </section>
+          <div class="card col-4">
+            <h3>世界観で探せる</h3>
+            <p class="muted">「高級感」「幻想的」「温かい」など、言葉にしづらいイメージから候補を探せます。</p>
+          </div>
+          <div class="card col-4">
+            <h3>運営が伴走</h3>
+            <p class="muted">企業とクリエイターが安心して進められるよう、提案後に運営確認を挟みます。</p>
+          </div>
+          <div class="card col-4">
+            <h3>即決定にしない</h3>
+            <p class="muted">企業が候補を選んでも、面談・条件合意までは正式契約になりません。</p>
+          </div>
+        </div>
+      </section>
 
-    <section class="help-card">
-      <details>
-        <summary>CSVの想定列</summary>
-        <p>まずは以下の列名に対応しています。Rodeoの列名が違っても、近い名前なら自動判定します。</p>
-        <ul>
-          <li>コンテナ / tote / container</li>
-          <li>CPT / cpt</li>
-          <li>ASIN</li>
-          <li>商品名 / title / ASIN_TITLES</li>
-          <li>数量 / quantity</li>
-        </ul>
-      </details>
-    </section>
-  </main>
+      <section id="projectForm" class="page hidden">
+        <div class="page-head">
+          <div>
+            <h2>案件登録</h2>
+            <p>求めるイラストの世界観・用途・条件を入力してください。</p>
+          </div>
+        </div>
+
+        <div class="grid">
+          <form id="projectFormElement" class="card col-7">
+            <h3>案件情報</h3>
+            <div class="field"><label>会社名</label><input name="company" required value="サンプル株式会社" /></div>
+            <div class="field"><label>担当者名</label><input name="person" required value="田中" /></div>
+            <div class="field"><label>案件名</label><input name="title" required value="新ブランド用メインビジュアル制作" /></div>
+            <div class="field"><label>予算</label><input name="budget" value="50,000円〜150,000円" /></div>
+            <div class="field"><label>希望納期</label><input name="deadline" value="2週間以内" /></div>
+            <div class="field"><label>案件内容</label><textarea name="detail">独創的で記憶に残るブランドイラストを制作したい。SNSとWebサイトで使用予定。</textarea></div>
+            <div class="field"><label>求める世界観</label><div id="projectTagArea" class="tags"></div></div>
+            <div class="field"><label>自由入力</label><textarea name="worldText">少し幻想的で、でも温かさがある。量産型ではなく、この人にしか出せない個性がほしい。</textarea></div>
+            <button class="primary" type="submit">案件を登録する</button>
+          </form>
+
+          <div class="card col-5">
+            <h3>案件確認</h3>
+            <div class="notice">
+              危険・違法・反社会的案件、クリエイターへの不利益が大きい案件は受付対象外です。
+            </div>
+            <div class="field">
+              <label>反社会的・違法・危険要素</label>
+              <select id="risk"><option value="safe">なし</option><option value="danger">あり</option></select>
+            </div>
+            <div class="field">
+              <label>クリエイターへの強要・不利益条件</label>
+              <select id="force"><option value="safe">なし</option><option value="danger">あり</option></select>
+            </div>
+            <div class="field">
+              <label>使用範囲</label>
+              <select id="usage"><option value="safe">明確</option><option value="review">相談したい</option></select>
+            </div>
+            <button id="checkProjectButton" type="button">内容を確認する</button>
+            <h3>確認結果</h3>
+            <p id="safetyResult" class="status">未確認</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="projectList" class="page hidden">
+        <div class="page-head">
+          <div>
+            <h2>案件一覧</h2>
+            <p>登録した案件を確認し、候補検索へ進めます。</p>
+          </div>
+          <button class="primary" data-jump="projectForm">新規案件登録</button>
+        </div>
+        <div class="card"><div id="projectListArea"></div></div>
+      </section>
+
+      <section id="creatorSearch" class="page hidden">
+        <div class="page-head">
+          <div>
+            <h2>クリエイター検索</h2>
+            <p>選択中案件：<span id="activeProjectName" class="status">未選択</span></p>
+          </div>
+          <button class="ghost" data-jump="proposalStatus">提案状況へ</button>
+        </div>
+        <div class="card">
+          <p class="muted">案件の世界観タグと、クリエイターの得意タグを照合し、相性の高い候補を表示します。</p>
+          <button id="runMatchButton" class="primary">候補を表示する</button>
+          <div id="matchArea"></div>
+        </div>
+      </section>
+
+      <section id="proposalStatus" class="page hidden">
+        <div class="page-head">
+          <div>
+            <h2>提案状況</h2>
+            <p>案件提案後の進行状況を確認できます。</p>
+          </div>
+        </div>
+        <div class="card"><div id="proposalArea"></div></div>
+      </section>
+
+      <section id="creatorList" class="page hidden">
+        <div class="page-head">
+          <div>
+            <h2>クリエイター一覧</h2>
+            <p>登録クリエイターの世界観・制作ポリシーをご確認いただけます。</p>
+          </div>
+        </div>
+        <div class="card"><div id="creatorListArea"></div></div>
+      </section>
+    </main>
+  </div>
 
   <script src="./app.js"></script>
 </body>
