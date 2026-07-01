@@ -3,21 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EIRAUM v2.1 Dev</title>
+  <title>EIRAUM v2.2 Dev</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <section id="intro" class="intro">
-    <div class="intro-logo wordmark">EIRAUM</div>
-    <div class="intro-name">EIRAUM</div>
+    <div class="intro-logo">EIRAUM</div>
     <div class="intro-copy">才能ではなく、<br>世界観でつながる。</div>
   </section>
 
   <section id="login" class="login hidden">
     <div class="login-card">
-      <div class="logo large wordmark-login">EIRAUM</div>
+      <div class="brand-mark">EIRAUM</div>
       <h1>EIRAUM</h1>
-      <p class="muted">企業・表現者・オーナー・サブオーナーで権限を分けます。</p>
+      <p class="muted">才能ではなく、世界観でつながる。</p>
 
       <div class="role-select">
         <button class="role on" data-role="client">企業</button>
@@ -28,15 +27,13 @@
 
       <input id="password" type="password" placeholder="パスワード" />
       <button id="loginBtn" class="primary full">ログイン</button>
-      <p class="hint">
-        パスワードは非公開です。企業は契約時、表現者は本登録時、運営側は社内共有で案内されます。
-      </p>
-          <div class="notice auth-note">
+
+      <div class="notice auth-note">
         <b>パスワード管理方針</b><br>
         クライアント企業：契約時に運営から発行<br>
         表現者：仮登録後、本登録時に発行<br>
         運営側：会社内でのみ共有<br>
-        パスワード再設定：オーナーのみ可能
+        パスワード再設定：オーナーのみ
       </div>
     </div>
   </section>
@@ -44,7 +41,7 @@
   <div id="app" class="app hidden">
     <aside class="sidebar">
       <div class="brand">
-        <div class="logo wordmark-side">E</div>
+        <div class="side-mark">E</div>
         <div>
           <h2>EIRAUM</h2>
           <p id="roleName">Role</p>
@@ -63,9 +60,9 @@
       <section id="page-chat" class="page hidden"></section>
       <section id="page-owner" class="page hidden"></section>
       <section id="page-subowners" class="page hidden"></section>
+      <section id="page-passwords" class="page hidden"></section>
       <section id="page-audit" class="page hidden"></section>
       <section id="page-vault" class="page hidden"></section>
-      <section id="page-passwords" class="page hidden"></section>
     </main>
   </div>
 

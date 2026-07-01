@@ -3,136 +3,39 @@ const labels={client:"企業",creator:"表現者",owner:"オーナー",subowner:
 const menus={
  client:[["home","ホーム"],["projects","案件"],["creators","表現者一覧"],["match","表現者検索"],["proposals","提案状況"],["chat","案件チャット"]],
  creator:[["home","ホーム"],["creators","プロフィール登録"],["proposals","提案状況"],["chat","案件チャット"],["vault","マイ金庫"]],
- owner:[["home","ホーム"],["owner","オーナーDB"],["subowners","サブオーナー管理"],["projects","案件管理"],["creators","表現者管理"],["match","表現者検索"],["proposals","提案管理"],["chat","案件チャット"],["audit","監査ログ"],["passwords","パスワード管理"],["vault","税務・マイ金庫"]],
+ owner:[["home","ホーム"],["owner","オーナーDB"],["subowners","サブ管理"],["passwords","パスワード管理"],["projects","案件管理"],["creators","表現者管理"],["match","表現者検索"],["proposals","提案管理"],["chat","案件チャット"],["audit","監査ログ"],["vault","税務・マイ金庫"]],
  subowner:[["home","ホーム"],["projects","案件確認"],["creators","表現者確認"],["match","表現者検索"],["proposals","提案管理"],["chat","案件チャット"],["vault","税務閲覧"]]
 };
 const tags=["幻想的","温かい","ダーク","ポップ","和風","サイバー","ミニマル","レトロ","高級感","かわいい","クール","ストリート","独創的","透明感","廃退感"];
 const blank=()=>({projects:[],creators:[
-{id:"c1",name:"Aoi",world:"幻想的で透明感のある、静かな感情表現が得意。",thought:"ブランドの奥にある空気を描きたい。",tags:["幻想的","透明感","温かい"],price:"50,000円〜",works:[],face:""},
-{id:"c2",name:"Riku",world:"ストリート、ダーク、廃退感のある強いビジュアルが得意。",thought:"記憶に残る強さを大切にしています。",tags:["ストリート","ダーク","廃退感"],price:"80,000円〜",works:[],face:""}
+{id:"c1",name:"Aoi",world:"幻想的で透明感のある、静かな感情表現が得意。",thought:"ブランドの奥にある空気を描きたい。",tags:["幻想的","透明感","温かい"],price:"50,000円〜"},
+{id:"c2",name:"Riku",world:"ストリート、ダーク、廃退感のある強いビジュアルが得意。",thought:"記憶に残る強さを大切にしています。",tags:["ストリート","ダーク","廃退感"],price:"80,000円〜"}
 ],proposals:[],subowners:[],audit:[],chats:{}});
-let state=JSON.parse(localStorage.getItem("wm_v2")||"null")||blank();
+let state=JSON.parse(localStorage.getItem("eiraum_v22")||"null")||blank();
 let role="client", selectedRole="client", activeProject=null, activeChat=null;
 const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
-const save=()=>localStorage.setItem("wm_v2",JSON.stringify(state));
+const save=()=>localStorage.setItem("eiraum_v22",JSON.stringify(state));
 const uid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
 function log(action){state.audit.unshift({id:uid(),role:labels[role],action,time:new Date().toLocaleString("ja-JP")});save();}
-function showLogin(){setTimeout(()=>{$("#intro").classList.add("hide");setTimeout(()=>{$("#intro").classList.add("hidden");$("#login").classList.remove("hidden")},1000)},5200)}
-showLogin();
+setTimeout(()=>{$("#intro").classList.add("hide");setTimeout(()=>{$("#intro").classList.add("hidden");$("#login").classList.remove("hidden")},1000)},4700);
 $$(".role").forEach(b=>b.onclick=()=>{$$(".role").forEach(x=>x.classList.remove("on"));b.classList.add("on");selectedRole=b.dataset.role});
 $("#loginBtn").onclick=()=>{if($("#password").value!==passwords[selectedRole])return alert("パスワードが違います");role=selectedRole;$("#login").classList.add("hidden");$("#app").classList.remove("hidden");setupApp();};
 $("#logoutBtn").onclick=()=>location.reload();
-
-function setupApp(){
- $("#roleName").textContent=labels[role];
- $("#menu").innerHTML=menus[role].map(([p,n])=>`<button data-page="${p}">${n}</button>`).join("");
- $$("#menu button").forEach(b=>b.onclick=()=>nav(b.dataset.page));
- nav("home");
-}
-function nav(p){
- $$(".page").forEach(x=>x.classList.add("hidden"));
- $("#page-"+p).classList.remove("hidden");
- $$("#menu button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
- render(p);
-}
+function setupApp(){ $("#roleName").textContent=labels[role]; $("#menu").innerHTML=menus[role].map(([p,n])=>`<button data-page="${p}">${n}</button>`).join(""); $$("#menu button").forEach(b=>b.onclick=()=>nav(b.dataset.page)); nav("home");}
+function nav(p){ $$(".page").forEach(x=>x.classList.add("hidden")); $("#page-"+p).classList.remove("hidden"); $$("#menu button").forEach(b=>b.classList.toggle("active",b.dataset.page===p)); render(p);}
 function head(title,sub=""){return `<div class="page-head"><div><h1>${title}</h1><p class="muted">${sub}</p></div></div>`}
-function render(p){({home,projects,creators,match,proposals,chat,owner,subowners,audit,passwords,vault}[p]||home)();}
-function home(){
- $("#page-home").innerHTML=head(labels[role]+"ホーム","才能ではなく、世界観でつながる。")+`
- <div class="grid">
-  <div class="card col-12"><h2>EIRAUM</h2><p class="muted">世界観を軸に、企業と表現者をつなぐシックなプラットフォーム。</p></div>
-  <div class="card col-4"><h3>案件</h3><div class="kpi">${state.projects.length}</div></div>
-  <div class="card col-4"><h3>表現者</h3><div class="kpi">${state.creators.length}</div></div>
-  <div class="card col-4"><h3>提案</h3><div class="kpi">${state.proposals.length}</div></div>
- </div>`;
-}
+function render(p){({home,projects,creators,match,proposals,chat,owner,subowners,passwords:passwordPage,audit,vault}[p]||home)();}
+function home(){ $("#page-home").innerHTML=head(labels[role]+"ホーム","才能ではなく、世界観でつながる。")+`<div class="grid"><div class="card col-12"><h2>EIRAUM</h2><p class="muted">世界観を軸に、企業と表現者をつなぐシックなプラットフォーム。</p></div><div class="card col-4"><h3>案件</h3><div class="kpi">${state.projects.length}</div></div><div class="card col-4"><h3>表現者</h3><div class="kpi">${state.creators.length}</div></div><div class="card col-4"><h3>提案</h3><div class="kpi">${state.proposals.length}</div></div></div>`;}
 function tagPicker(selected){return tags.map(t=>`<span class="tag ${selected.includes(t)?"on":""}" data-tag="${t}">${t}</span>`).join("")}
-function projects(){
- const canEdit=role==="client"||role==="owner";
- $("#page-projects").innerHTML=head("案件管理","企業は案件登録、オーナーは全件確認できます。")+`
- ${canEdit?`<div class="card"><h3>案件登録</h3>
- <div class="grid"><div class="col-6 field"><label>会社名</label><input id="pCompany" value="サンプル株式会社"></div><div class="col-6 field"><label>案件名</label><input id="pTitle" value="新ブランド用メインビジュアル"></div></div>
- <div class="field"><label>案件内容</label><textarea id="pDetail">世界観のあるキービジュアルを制作したい。</textarea></div>
- <div class="field"><label>求める世界観</label><div id="pTags">${tagPicker(["高級感","独創的"])}</div></div>
- <button class="primary" id="addProject">案件を登録</button></div>`:""}
- <div class="card"><h3>案件一覧</h3><div id="projectList"></div></div>`;
- let selected=["高級感","独創的"];
- if(canEdit){$$("#pTags .tag").forEach(t=>t.onclick=()=>{selected=selected.includes(t.dataset.tag)?selected.filter(x=>x!==t.dataset.tag):[...selected,t.dataset.tag];$("#pTags").innerHTML=tagPicker(selected);projects()});$("#addProject").onclick=()=>{const p={id:uid(),company:$("#pCompany").value,title:$("#pTitle").value,detail:$("#pDetail").value,tags:selected,status:"候補検索可能",created:new Date().toLocaleString("ja-JP")};state.projects.push(p);activeProject=p.id;log("案件登録："+p.title);save();projects();};}
- $("#projectList").innerHTML=state.projects.length?state.projects.map(p=>`<div class="item"><div><h3>${p.title}</h3><p>${p.company}</p><p class="muted">${p.detail}</p>${p.tags.map(t=>`<span class="pill">${t}</span>`).join("")}<p>状態：<span class="status">${p.status}</span></p></div><div><button class="primary" onclick="activeProject='${p.id}';nav('match')">この案件で検索</button></div></div>`).join(""):"<p class='muted'>案件はまだありません。</p>";
-}
-function creators(){
- const canRegister=role==="creator"||role==="owner";
- $("#page-creators").innerHTML=head("表現者管理","表現者の世界観・思想・作品を管理します。")+`
- ${canRegister?`<div class="card"><h3>表現者登録</h3><div class="grid"><div class="col-6 field"><label>名前</label><input id="cName" value="Noir Atelier"></div><div class="col-6 field"><label>参考価格</label><input id="cPrice" value="70,000円〜"></div></div>
- <div class="field"><label>貴方の世界観を鮮明に教えてください。</label><textarea id="cWorld">シックで重厚感のある世界観、静かな高級感、余白を活かした表現が得意。</textarea></div>
- <div class="field"><label>貴方の思想を鮮明に教えてください。</label><textarea id="cThought">流行に寄せすぎず、ブランドの芯に残る表現を大切にしています。</textarea></div>
- <div class="field"><label>得意タグ</label><div id="cTags">${tagPicker(["高級感","ミニマル","廃退感"])}</div></div>
- <div class="notice"><label><input type="checkbox" id="cCheck"> 反社会的勢力ではなく、作品掲載権限を持ち、NG条件を正確に申告します。</label></div>
- <button class="primary" id="addCreator">登録</button></div>`:""}
- <div class="card"><h3>表現者一覧</h3><div id="creatorList"></div></div>`;
- let selected=["高級感","ミニマル","廃退感"];
- if(canRegister){$$("#cTags .tag").forEach(t=>t.onclick=()=>{selected=selected.includes(t.dataset.tag)?selected.filter(x=>x!==t.dataset.tag):[...selected,t.dataset.tag];$("#cTags").innerHTML=tagPicker(selected);});$("#addCreator").onclick=()=>{if(!$("#cCheck").checked)return alert("確認事項に同意してください");const c={id:uid(),name:$("#cName").value,price:$("#cPrice").value,world:$("#cWorld").value,thought:$("#cThought").value,tags:selected,works:[],face:""};state.creators.push(c);log("表現者登録："+c.name);save();creators();};}
- $("#creatorList").innerHTML=state.creators.map(c=>`<div class="item"><div class="creator-row"><div class="avatar">W</div><div><h3>${c.name}</h3><p>${c.world}</p><p class="muted">${c.thought}</p>${c.tags.map(t=>`<span class="pill">${t}</span>`).join("")}<p class="muted">${c.price}</p></div></div></div>`).join("");
-}
-function match(){
- const p=state.projects.find(x=>x.id===activeProject);
- $("#page-match").innerHTML=head("表現者検索",p?`選択中案件：${p.title}`:"案件未選択")+`<div class="card"><button class="primary" id="runMatch">候補を表示</button><div id="matchList"></div></div>`;
- $("#runMatch").onclick=()=>{if(!p)return alert("案件を選択してください");const list=state.creators.map(c=>({...c,score:Math.round(c.tags.filter(t=>p.tags.includes(t)).length/Math.max(p.tags.length,1)*100)})).sort((a,b)=>b.score-a.score);$("#matchList").innerHTML=list.map(c=>`<div class="item"><div><h3>${c.name}</h3><p>${c.world}</p>${c.tags.map(t=>`<span class="pill">${t}</span>`).join("")}</div><div><div class="kpi">${c.score}%</div><button class="primary" onclick="sendProposal('${p.id}','${c.id}')">案件提案</button></div></div>`).join("")};
-}
+function projects(){ const canEdit=role==="client"||role==="owner"; $("#page-projects").innerHTML=head("案件管理","企業は案件登録、オーナーは全件確認できます。")+`${canEdit?`<div class="card"><h3>案件登録</h3><div class="grid"><div class="col-6 field"><label>会社名</label><input id="pCompany" value="サンプル株式会社"></div><div class="col-6 field"><label>案件名</label><input id="pTitle" value="新ブランド用メインビジュアル"></div></div><div class="field"><label>案件内容</label><textarea id="pDetail">世界観のあるキービジュアルを制作したい。</textarea></div><div class="field"><label>求める世界観</label><div id="pTags">${tagPicker(["高級感","独創的"])}</div></div><button class="primary" id="addProject">案件を登録</button></div>`:""}<div class="card"><h3>案件一覧</h3><div id="projectList"></div></div>`; let selected=["高級感","独創的"]; if(canEdit){$$("#pTags .tag").forEach(t=>t.onclick=()=>{selected=selected.includes(t.dataset.tag)?selected.filter(x=>x!==t.dataset.tag):[...selected,t.dataset.tag];$("#pTags").innerHTML=tagPicker(selected);});$("#addProject").onclick=()=>{const p={id:uid(),company:$("#pCompany").value,title:$("#pTitle").value,detail:$("#pDetail").value,tags:selected,status:"候補検索可能",created:new Date().toLocaleString("ja-JP")};state.projects.push(p);activeProject=p.id;log("案件登録："+p.title);save();projects();};} $("#projectList").innerHTML=state.projects.length?state.projects.map(p=>`<div class="item"><div><h3>${p.title}</h3><p>${p.company}</p><p class="muted">${p.detail}</p>${p.tags.map(t=>`<span class="pill">${t}</span>`).join("")}<p>状態：<span class="status">${p.status}</span></p></div><div><button class="primary" onclick="activeProject='${p.id}';nav('match')">この案件で検索</button></div></div>`).join(""):"<p class='muted'>案件はまだありません。</p>";}
+function creators(){ const canRegister=role==="creator"||role==="owner"; $("#page-creators").innerHTML=head("表現者管理","表現者の世界観・思想・作品を管理します。")+`${canRegister?`<div class="card"><h3>表現者登録</h3><div class="grid"><div class="col-6 field"><label>名前</label><input id="cName" value="Noir Atelier"></div><div class="col-6 field"><label>参考価格</label><input id="cPrice" value="70,000円〜"></div></div><div class="field"><label>貴方の世界観を鮮明に教えてください。</label><textarea id="cWorld">シックで重厚感のある世界観、静かな高級感、余白を活かした表現が得意。</textarea></div><div class="field"><label>貴方の思想を鮮明に教えてください。</label><textarea id="cThought">流行に寄せすぎず、ブランドの芯に残る表現を大切にしています。</textarea></div><div class="field"><label>得意タグ</label><div id="cTags">${tagPicker(["高級感","ミニマル","廃退感"])}</div></div><div class="notice"><label><input type="checkbox" id="cCheck"> 反社会的勢力ではなく、作品掲載権限を持ち、NG条件を正確に申告します。</label></div><button class="primary" id="addCreator">登録</button></div>`:""}<div class="card"><h3>表現者一覧</h3><div id="creatorList"></div></div>`; let selected=["高級感","ミニマル","廃退感"]; if(canRegister){$$("#cTags .tag").forEach(t=>t.onclick=()=>{selected=selected.includes(t.dataset.tag)?selected.filter(x=>x!==t.dataset.tag):[...selected,t.dataset.tag];$("#cTags").innerHTML=tagPicker(selected);});$("#addCreator").onclick=()=>{if(!$("#cCheck").checked)return alert("確認事項に同意してください");const c={id:uid(),name:$("#cName").value,price:$("#cPrice").value,world:$("#cWorld").value,thought:$("#cThought").value,tags:selected};state.creators.push(c);log("表現者登録："+c.name);save();creators();};} $("#creatorList").innerHTML=state.creators.map(c=>`<div class="item"><div class="creator-row"><div class="avatar">E</div><div><h3>${c.name}</h3><p>${c.world}</p><p class="muted">${c.thought}</p>${c.tags.map(t=>`<span class="pill">${t}</span>`).join("")}<p class="muted">${c.price}</p></div></div></div>`).join("");}
+function match(){ const p=state.projects.find(x=>x.id===activeProject); $("#page-match").innerHTML=head("表現者検索",p?`選択中案件：${p.title}`:"案件未選択")+`<div class="card"><button class="primary" id="runMatch">候補を表示</button><div id="matchList"></div></div>`; $("#runMatch").onclick=()=>{if(!p)return alert("案件を選択してください");const list=state.creators.map(c=>({...c,score:Math.round(c.tags.filter(t=>p.tags.includes(t)).length/Math.max(p.tags.length,1)*100)})).sort((a,b)=>b.score-a.score);$("#matchList").innerHTML=list.map(c=>`<div class="item"><div><h3>${c.name}</h3><p>${c.world}</p>${c.tags.map(t=>`<span class="pill">${t}</span>`).join("")}</div><div><div class="kpi">${c.score}%</div><button class="primary" onclick="sendProposal('${p.id}','${c.id}')">案件提案</button></div></div>`).join("")};}
 window.sendProposal=(pid,cid)=>{const p=state.projects.find(x=>x.id===pid),c=state.creators.find(x=>x.id===cid);state.proposals.push({id:uid(),projectId:pid,creatorId:cid,project:p.title,creator:c.name,status:"運営確認中",created:new Date().toLocaleString("ja-JP")});p.status="案件提案済み";log(`案件提案：${p.title} → ${c.name}`);save();nav("proposals")};
-function proposals(){
- $("#page-proposals").innerHTML=head("提案状況","運営確認、面談、条件合意まで管理します。")+`<div class="card">${state.proposals.length?state.proposals.map(pr=>`<div class="item"><div><h3>${pr.creator}</h3><p>${pr.project}</p><p>状態：<span class="status">${pr.status}</span></p><div class="flow"><span class="now">運営確認</span><span>表現者確認</span><span>面談</span><span>条件合意</span><span>正式契約</span><span>完了</span></div></div></div>`).join(""):"<p class='muted'>提案はまだありません。</p>"}</div>`;
-}
-function chat(){
- $("#page-chat").innerHTML=head("案件チャット","案件ごとに企業・表現者・オーナーがやり取りできます。")+`<div class="grid"><div class="card col-5">${state.projects.map(p=>`<button class="ghost full" onclick="activeChat='${p.id}';chat()">${p.title}</button>`).join("")||"<p class='muted'>案件がありません。</p>"}</div><div class="card col-7"><h3>${state.projects.find(p=>p.id===activeChat)?.title||"案件を選択"}</h3><div class="chat-box" id="chatBox"></div><div class="chat-row"><input id="chatText" placeholder="メッセージ"><button class="primary" id="chatSend">送信</button></div></div></div>`;
- const box=$("#chatBox"); if(activeChat){state.chats[activeChat]=state.chats[activeChat]||[];box.innerHTML=state.chats[activeChat].map(m=>`<div class="msg"><b>${m.role}</b><small>${m.time}</small><p>${m.text}</p></div>`).join("")||"<p class='muted'>まだメッセージはありません。</p>";}
- $("#chatSend").onclick=()=>{if(!activeChat)return alert("案件を選択してください");const text=$("#chatText").value.trim();if(!text)return;state.chats[activeChat].push({role:labels[role],text,time:new Date().toLocaleString("ja-JP")});log("チャット送信："+text.slice(0,30));save();chat();};
-}
-function owner(){
- $("#page-owner").innerHTML=head("オーナーダッシュボード","雄汽 大庭専用の最高権限画面。")+`<div class="grid"><div class="card col-3"><h3>案件</h3><div class="kpi">${state.projects.length}</div></div><div class="card col-3"><h3>表現者</h3><div class="kpi">${state.creators.length}</div></div><div class="card col-3"><h3>提案</h3><div class="kpi">${state.proposals.length}</div></div><div class="card col-3"><h3>サブ</h3><div class="kpi">${state.subowners.length}</div></div><div class="card col-12"><h3>オーナー権限</h3><p class="muted">全データ閲覧、履歴削除、サブオーナー追加、チャット確認、税務構想管理。</p></div></div>`;
-}
-function subowners(){
- $("#page-subowners").innerHTML=head("サブオーナー管理","追加・削除できるのはオーナーのみ。")+`<div class="grid"><div class="card col-5"><div class="field"><label>名前</label><input id="soName"></div><div class="field"><label>メール</label><input id="soEmail"></div><button class="primary" id="soAdd">追加</button></div><div class="card col-7" id="soList"></div></div>`;
- $("#soAdd").onclick=()=>{if(role!=="owner")return alert("オーナーのみ可能です");const so={id:uid(),name:$("#soName").value,email:$("#soEmail").value};state.subowners.push(so);log("サブオーナー追加："+so.name);save();subowners();};
- $("#soList").innerHTML=`<div class="item"><div><h3>👑 雄汽 大庭</h3><p class="muted">最高権限オーナー</p></div></div>`+state.subowners.map(so=>`<div class="item"><div><h3>⭐ ${so.name}</h3><p>${so.email}</p></div><div><button class="danger" onclick="removeSO('${so.id}')">削除</button></div></div>`).join("");
-}
+function proposals(){ $("#page-proposals").innerHTML=head("提案状況","運営確認、面談、条件合意まで管理します。")+`<div class="card">${state.proposals.length?state.proposals.map(pr=>`<div class="item"><div><h3>${pr.creator}</h3><p>${pr.project}</p><p>状態：<span class="status">${pr.status}</span></p><div class="flow"><span class="now">運営確認</span><span>表現者確認</span><span>面談</span><span>条件合意</span><span>正式契約</span><span>完了</span></div></div></div>`).join(""):"<p class='muted'>提案はまだありません。</p>"}</div>`;}
+function chat(){ $("#page-chat").innerHTML=head("案件チャット","案件ごとに企業・表現者・オーナーがやり取りできます。")+`<div class="grid"><div class="card col-5">${state.projects.map(p=>`<button class="ghost full" onclick="activeChat='${p.id}';chat()">${p.title}</button>`).join("")||"<p class='muted'>案件がありません。</p>"}</div><div class="card col-7"><h3>${state.projects.find(p=>p.id===activeChat)?.title||"案件を選択"}</h3><div class="chat-box" id="chatBox"></div><div class="chat-row"><input id="chatText" placeholder="メッセージ"><button class="primary" id="chatSend">送信</button></div></div></div>`; const box=$("#chatBox"); if(activeChat){state.chats[activeChat]=state.chats[activeChat]||[];box.innerHTML=state.chats[activeChat].map(m=>`<div class="msg"><b>${m.role}</b><small>${m.time}</small><p>${m.text}</p></div>`).join("")||"<p class='muted'>まだメッセージはありません。</p>";} $("#chatSend").onclick=()=>{if(!activeChat)return alert("案件を選択してください");const text=$("#chatText").value.trim();if(!text)return;state.chats[activeChat].push({role:labels[role],text,time:new Date().toLocaleString("ja-JP")});log("チャット送信："+text.slice(0,30));save();chat();};}
+function owner(){ $("#page-owner").innerHTML=head("オーナーダッシュボード","雄汽 大庭専用の最高権限画面。")+`<div class="grid"><div class="card col-3"><h3>案件</h3><div class="kpi">${state.projects.length}</div></div><div class="card col-3"><h3>表現者</h3><div class="kpi">${state.creators.length}</div></div><div class="card col-3"><h3>提案</h3><div class="kpi">${state.proposals.length}</div></div><div class="card col-3"><h3>サブ</h3><div class="kpi">${state.subowners.length}</div></div><div class="card col-12"><h3>オーナー権限</h3><p class="muted">全データ閲覧、履歴削除、サブオーナー追加、チャット確認、税務構想管理。</p></div></div>`;}
+function subowners(){ $("#page-subowners").innerHTML=head("サブオーナー管理","追加・削除できるのはオーナーのみ。")+`<div class="grid"><div class="card col-5"><div class="field"><label>名前</label><input id="soName"></div><div class="field"><label>メール</label><input id="soEmail"></div><button class="primary" id="soAdd">追加</button></div><div class="card col-7" id="soList"></div></div>`; $("#soAdd").onclick=()=>{if(role!=="owner")return alert("オーナーのみ可能です");const so={id:uid(),name:$("#soName").value,email:$("#soEmail").value};state.subowners.push(so);log("サブオーナー追加："+so.name);save();subowners();}; $("#soList").innerHTML=`<div class="item"><div><h3>👑 雄汽 大庭</h3><p class="muted">最高権限オーナー</p></div></div>`+state.subowners.map(so=>`<div class="item"><div><h3>⭐ ${so.name}</h3><p>${so.email}</p></div><div><button class="danger" onclick="removeSO('${so.id}')">削除</button></div></div>`).join("");}
 window.removeSO=id=>{if(role!=="owner")return alert("オーナーのみ可能です");const so=state.subowners.find(x=>x.id===id);state.subowners=state.subowners.filter(x=>x.id!==id);log("サブオーナー削除："+so.name);save();subowners()};
-function audit(){
- $("#page-audit").innerHTML=head("監査ログ","削除できるのはオーナーのみ。")+`<div class="card"><button class="danger" id="clearLog">履歴削除</button>${state.audit.map(a=>`<div class="item"><div><h3>${a.action}</h3><p class="muted">${a.time} / ${a.role}</p></div></div>`).join("")||"<p class='muted'>履歴はありません。</p>"}</div>`;
- $("#clearLog").onclick=()=>{if(role!=="owner")return alert("履歴削除はオーナーのみ可能です");if(confirm("履歴を削除しますか？")){state.audit=[];save();audit();}};
-}
-
-function passwords(){
- if(role!=="owner"){
-  $("#page-passwords").innerHTML=head("パスワード管理","この画面はオーナーのみ利用できます。")+`<div class="card"><p class="muted">権限がありません。</p></div>`;
-  return;
- }
- $("#page-passwords").innerHTML=head("パスワード管理","再設定できるのはオーナーのみです。")+`
- <div class="grid">
-  <div class="card col-6">
-   <h3>発行ルール</h3>
-   <p class="muted">クライアント企業：契約時に運営から案内</p>
-   <p class="muted">表現者：仮登録後、本登録時に案内</p>
-   <p class="muted">運営側：会社内でのみ共有</p>
-   <p class="status">パスワード再設定：オーナーのみ</p>
-  </div>
-  <div class="card col-6">
-   <h3>再設定デモ</h3>
-   <div class="field"><label>対象</label><select id="resetTarget"><option>企業</option><option>表現者</option><option>サブオーナー</option></select></div>
-   <div class="field"><label>新しい仮パスワード</label><input id="newTempPassword" type="password" placeholder="新しい仮パスワード"></div>
-   <button class="primary" id="resetPasswordBtn">再設定する</button>
-   <p class="hint">※デモ画面では実際の認証情報は変更せず、監査ログに記録します。</p>
-  </div>
- </div>`;
- $("#resetPasswordBtn").onclick=()=>{
-  const target=$("#resetTarget").value;
-  if(!$("#newTempPassword").value.trim()) return alert("新しい仮パスワードを入力してください。");
-  log("パスワード再設定："+target);
-  alert(target+"の仮パスワード再設定を記録しました。");
-  $("#newTempPassword").value="";
- };
-}
-
-function vault(){
- $("#page-vault").innerHTML=head("マイ金庫・税務サポート","源泉徴収・確定申告用データは将来機能として拡張。")+`<div class="grid"><div class="card col-4"><h3>報酬管理</h3><p class="muted">案件ごとの報酬・振込状況。</p></div><div class="card col-4"><h3>源泉徴収</h3><p class="muted">支払調書・源泉徴収関連データ。</p></div><div class="card col-4"><h3>確定申告</h3><p class="muted">年間売上・経費・CSV/PDF出力。</p></div><div class="card col-12"><div class="vault-grid"><div>📄 契約書</div><div>📄 請求書</div><div>📄 領収書</div><div>📄 税務書類</div><div>🖼️ 作品</div></div></div></div>`;
-}
+function passwordPage(){ if(role!=="owner"){ $("#page-passwords").innerHTML=head("パスワード管理","オーナーのみ利用可能です。")+`<div class="card"><p class="muted">権限がありません。</p></div>`; return;} $("#page-passwords").innerHTML=head("パスワード管理","再設定できるのはオーナーのみです。")+`<div class="grid"><div class="card col-6"><h3>発行ルール</h3><p class="muted">クライアント企業：契約時に運営から案内</p><p class="muted">表現者：仮登録後、本登録時に案内</p><p class="muted">運営側：会社内でのみ共有</p><p class="status">パスワード再設定：オーナーのみ</p></div><div class="card col-6"><h3>再設定デモ</h3><div class="field"><label>対象</label><select id="resetTarget"><option>企業</option><option>表現者</option><option>サブオーナー</option></select></div><div class="field"><label>新しい仮パスワード</label><input id="newTempPassword" type="password" placeholder="新しい仮パスワード"></div><button class="primary" id="resetPasswordBtn">再設定する</button><p class="muted">※実運用ではここで本人確認と通知を行います。</p></div></div>`; $("#resetPasswordBtn").onclick=()=>{if(!$("#newTempPassword").value.trim())return alert("入力してください");log("パスワード再設定："+$("#resetTarget").value);alert("再設定を記録しました");$("#newTempPassword").value="";};}
+function audit(){ $("#page-audit").innerHTML=head("監査ログ","削除できるのはオーナーのみ。")+`<div class="card"><button class="danger" id="clearLog">履歴削除</button>${state.audit.map(a=>`<div class="item"><div><h3>${a.action}</h3><p class="muted">${a.time} / ${a.role}</p></div></div>`).join("")||"<p class='muted'>履歴はありません。</p>"}</div>`; $("#clearLog").onclick=()=>{if(role!=="owner")return alert("履歴削除はオーナーのみ可能です");if(confirm("履歴を削除しますか？")){state.audit=[];save();audit();}};}
+function vault(){ $("#page-vault").innerHTML=head("マイ金庫・税務サポート","源泉徴収・確定申告用データは将来機能として拡張。")+`<div class="grid"><div class="card col-4"><h3>報酬管理</h3><p class="muted">案件ごとの報酬・振込状況。</p></div><div class="card col-4"><h3>源泉徴収</h3><p class="muted">支払調書・源泉徴収関連データ。</p></div><div class="card col-4"><h3>確定申告</h3><p class="muted">年間売上・経費・CSV/PDF出力。</p></div><div class="card col-12"><div class="vault-grid"><div>📄 契約書</div><div>📄 請求書</div><div>📄 領収書</div><div>📄 税務書類</div><div>🖼️ 作品</div></div></div></div>`;}
