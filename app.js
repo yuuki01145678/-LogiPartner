@@ -1,6 +1,6 @@
 let html5QrCode = null;
 let scannerRunning = false;
-let totes = JSON.parse(localStorage.getItem("logipartner_totes_v20") || "[]");
+let totes = JSON.parse(localStorage.getItem("logipartner_totes_v21") || "[]");
 let lastScannedText = "";
 let lastScannedAt = 0;
 
@@ -58,13 +58,6 @@ function formatRemain(min) {
   return "あと" + h + "時間" + m + "分";
 }
 
-function findNextCpt() {
-  for (const cpt of CPT_TIMES) {
-    if (minutesUntil(cpt) >= 0) return cpt;
-  }
-  return CPT_TIMES[CPT_TIMES.length - 1];
-}
-
 function makeRecord(toteId, cpt, items, checker) {
   const judged = judgeByCpt(cpt);
   return {
@@ -83,7 +76,7 @@ function makeRecord(toteId, cpt, items, checker) {
 
 function saveTotes() {
   totes.sort((a, b) => a.priority - b.priority || a.remain - b.remain || b.priorityCount - a.priorityCount);
-  localStorage.setItem("logipartner_totes_v20", JSON.stringify(totes));
+  localStorage.setItem("logipartner_totes_v21", JSON.stringify(totes));
 }
 
 function addOrUpdateTote(toteId, cpt, items, checker) {
@@ -158,30 +151,40 @@ function getToteInfo(toteId) {
 
 function handleScannedCode(decodedText) {
   const now = Date.now();
-  if (decodedText === lastScannedText && now - lastScannedAt < 1800) return;
+  const cleanText = decodedText.trim();
 
-  lastScannedText = decodedText;
+  if (cleanText === lastScannedText && now - lastScannedAt < 1800) return;
+
+  lastScannedText = cleanText;
   lastScannedAt = now;
 
   const checker = document.getElementById("checker").value;
-  const info = getToteInfo(decodedText);
+  const info = getToteInfo(cleanText);
 
-  document.getElementById("toteInput").value = decodedText;
+  document.getElementById("quickToteInput").value = cleanText;
+  document.getElementById("toteInput").value = cleanText;
   document.getElementById("cptInput").value = info.cpt;
   document.getElementById("itemsInput").value = info.items.join(", ");
 
-  addOrUpdateTote(decodedText, info.cpt, info.items, checker);
+  addOrUpdateTote(cleanText, info.cpt, info.items, checker);
 
   if (navigator.vibrate) navigator.vibrate(120);
 
   document.getElementById("scanMessage").textContent =
-    "読み取り成功：" + decodedText + "　次のトートをそのまま映してください。";
+    "読み取り成功：" + cleanText + "　次のトートをそのまま映してください。";
 }
 
 function demoScan() {
   const demoIds = ["tsOBdy2F089", "DEMO-TOTE-001", "DEMO-TOTE-002", "TOTE-" + Math.floor(1000 + Math.random() * 9000)];
   const demoCode = demoIds[Math.floor(Math.random() * demoIds.length)];
   handleScannedCode(demoCode);
+}
+
+function quickManualAdd() {
+  const toteId = document.getElementById("quickToteInput").value || "未入力";
+  const checker = document.getElementById("checker").value;
+  const info = getToteInfo(toteId);
+  addOrUpdateTote(toteId, info.cpt, info.items, checker);
 }
 
 function manualAdd() {
@@ -211,7 +214,7 @@ async function startScanner() {
   if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
 
   if (scannerRunning) {
-    scanMessage.textContent = "すでにスキャン中です。トートバーコードを映してください。";
+    scanMessage.textContent = "すでにスキャン中です。トートバーコードを横長枠に入れてください。";
     return;
   }
 
@@ -219,14 +222,20 @@ async function startScanner() {
     await html5QrCode.start(
       { facingMode: "environment" },
       {
-        fps: 10,
-        qrbox: { width: 260, height: 120 },
+        fps: 15,
+        qrbox: { width: 320, height: 95 },
+        aspectRatio: 1.7777778,
+        disableFlip: false,
         formatsToSupport: [
           Html5QrcodeSupportedFormats.CODE_128,
           Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.ITF,
+          Html5QrcodeSupportedFormats.CODABAR,
           Html5QrcodeSupportedFormats.QR_CODE,
           Html5QrcodeSupportedFormats.EAN_13,
-          Html5QrcodeSupportedFormats.EAN_8
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E
         ]
       },
       (decodedText) => handleScannedCode(decodedText),
@@ -234,7 +243,7 @@ async function startScanner() {
     );
 
     scannerRunning = true;
-    scanMessage.textContent = "スキャン中です。読み取ってもカメラは開いたままです。";
+    scanMessage.textContent = "スキャン中です。バーコード全体を横長枠に合わせてください。";
   } catch (err) {
     scanMessage.textContent = "カメラを起動できませんでした。ページ更新・カメラ許可・HTTPSを確認してください。";
     scannerRunning = false;

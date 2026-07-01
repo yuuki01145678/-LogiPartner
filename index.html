@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LogiPartner Ver.2.0 Tote CPT</title>
+  <title>LogiPartner Ver.2.1 Scan Boost</title>
   <script src="https://unpkg.com/html5-qrcode" defer></script>
   <link rel="stylesheet" href="./style.css" />
 </head>
@@ -11,18 +11,31 @@
   <main class="app">
     <section class="header">
       <h1>LogiPartner</h1>
-      <p>Ver.2.0｜トートCPT管理</p>
+      <p>Ver.2.1｜トートバーコード読み取り強化</p>
     </section>
 
     <section class="camera-card">
-      <div class="section-title">📷 トートをスキャン</div>
+      <div class="section-title">📷 トートを横長枠に合わせてスキャン</div>
       <div class="scan-message" id="scanMessage">カメラ起動を押してください。</div>
+
       <div id="scannerWrap" class="scanner-wrap">
         <div id="reader"></div>
+        <div class="scan-tip">
+          バーコード全体を横長の枠に入れて、少し近づけたり離したりしてください。
+        </div>
       </div>
+
       <button class="scan-button" onclick="startScanner()">カメラ起動</button>
       <button class="stop-button" onclick="stopScanner()">スキャン停止</button>
       <button class="demo-button" onclick="demoScan()">テストトート</button>
+    </section>
+
+    <section class="quick-input">
+      <label>読めない時はトートIDを手入力</label>
+      <div class="manual-row">
+        <input id="quickToteInput" value="tsOBdy2F089" />
+        <button onclick="quickManualAdd()">登録</button>
+      </div>
     </section>
 
     <section id="currentTote" class="current-card">
@@ -74,7 +87,8 @@
 
     <section class="input-card">
       <details>
-        <summary>手入力・テスト用</summary>
+        <summary>詳細入力・テスト設定</summary>
+
         <label>確認者</label>
         <select id="checker">
           <option>大庭</option>
