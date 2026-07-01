@@ -3,14 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Worldview Match v1.5</title>
+  <title>Worldview Match v1.6</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <section id="loginScreen" class="login-screen">
+
+  <section id="brandIntro" class="brand-intro">
+    <div class="intro-mark">W</div>
+    <div class="intro-name">Worldview Match</div>
+    <div class="intro-copy">才能ではなく、<br>世界観でつながる。</div>
+  </section>
+
+  <section id="loginScreen" class="login-screen intro-wait">
     <div class="login-card">
       <div class="brand center">
-        <div class="logo">W</div>
+        <div class="logo brand-logo">W</div>
         <div>
           <h1>Worldview Match</h1>
           <p>Creative Matching Platform</p>
@@ -18,7 +25,7 @@
       </div>
 
       <h2>ログイン</h2>
-      <p class="muted">企業・クリエイター・運営の権限ごとに表示画面を切り替えます。</p>
+      <p class="muted">才能ではなく、世界観でつながる。</p><p class="muted">企業・表現者・運営の権限ごとに表示画面を切り替えます。</p>
 
       <div class="role-grid">
         <button class="role-card on" data-role-select="client">
@@ -26,7 +33,7 @@
           <span>案件登録・候補検索・提案状況</span>
         </button>
         <button class="role-card" data-role-select="creator">
-          <b>クリエイター側</b>
+          <b>表現者側</b>
           <span>プロフィール登録・提案確認</span>
         </button>
         <button class="role-card" data-role-select="admin">
@@ -43,7 +50,7 @@
       <button id="loginButton" class="primary full">ログイン</button>
 
       <div class="notice small">
-        デモ用パスワード：企業 client123 / クリエイター creator123 / 運営 admin123
+        デモ用パスワード：企業 client123 / 表現者 creator123 / 運営 admin123
       </div>
     </div>
   </section>
@@ -51,7 +58,7 @@
   <div id="appShell" class="app hidden">
     <aside class="sidebar">
       <div class="brand">
-        <div class="logo">W</div>
+        <div class="logo brand-logo">W</div>
         <div>
           <h1>Worldview Match</h1>
           <p id="roleLabel">Client</p>
@@ -75,10 +82,10 @@
         <div class="grid">
           <div class="card hero col-12">
             <span class="badge">Creative Matching Platform</span>
-            <h2 id="homeTitle">世界観から、最適なクリエイターをご提案します。</h2>
+            <h2 id="homeTitle">才能ではなく、世界観でつながる。</h2>
             <p id="homeText">
               企業が求める雰囲気・思想・ブランドイメージを入力すると、
-              世界観の近いクリエイター候補を抽出。提案後は運営が間に入り、
+              世界観の近い表現者候補を抽出。提案後は運営が間に入り、
               面談・条件合意まで丁寧に進行します。
             </p>
             <div class="actions" id="homeActions"></div>
@@ -137,11 +144,11 @@
 
       <section id="creatorSearch" class="page hidden">
         <div class="page-head">
-          <div><h2>クリエイター検索</h2><p>選択中案件：<span id="activeProjectName" class="status">未選択</span></p></div>
+          <div><h2>表現者検索</h2><p>選択中案件：<span id="activeProjectName" class="status">未選択</span></p></div>
           <button class="ghost" data-jump="proposalStatus">提案状況へ</button>
         </div>
         <div class="card">
-          <p class="muted">案件の世界観タグと、クリエイターの得意タグを照合し、相性の高い候補を表示します。</p>
+          <p class="muted">案件の世界観タグと、表現者の得意タグを照合し、相性の高い候補を表示します。</p>
           <button id="runMatchButton" class="primary">候補を表示する</button>
           <div id="matchArea"></div>
         </div>
@@ -149,7 +156,7 @@
 
       <section id="creatorList" class="page hidden">
         <div class="page-head">
-          <div><h2>クリエイター一覧</h2><p>登録クリエイターの世界観・制作ポリシーをご確認いただけます。</p></div>
+          <div><h2>表現者一覧</h2><p>登録表現者の世界観・制作ポリシーをご確認いただけます。</p></div>
           <button class="primary" data-jump="creatorRegister" data-role-show="creator admin">新規登録</button>
         </div>
         <div class="card"><div id="creatorListArea"></div></div>
@@ -157,7 +164,7 @@
 
       <section id="creatorRegister" class="page hidden">
         <div class="page-head">
-          <div><h2>クリエイター登録</h2><p>顔・名前・得意な世界観・作品を登録する本人向けフォームです。</p></div>
+          <div><h2>表現者登録</h2><p>顔・名前・得意な世界観・作品を登録する本人向けフォームです。</p></div>
           <button class="ghost" data-jump="creatorList">一覧へ戻る</button>
         </div>
 
@@ -224,7 +231,7 @@
 
       <section id="creatorDetail" class="page hidden">
         <div class="page-head">
-          <div><h2 id="detailName">クリエイター詳細</h2><p id="detailSub" class="muted"></p></div>
+          <div><h2 id="detailName">表現者詳細</h2><p id="detailSub" class="muted"></p></div>
           <button class="ghost" data-jump="creatorList">一覧へ戻る</button>
         </div>
         <div id="creatorDetailArea"></div>
@@ -244,15 +251,15 @@
 
       <section id="adminDashboard" class="page hidden">
         <div class="page-head">
-          <div><h2>運営ダッシュボード</h2><p>企業・クリエイター・案件提案をすべて確認できます。</p></div>
+          <div><h2>運営ダッシュボード</h2><p>企業・表現者・案件提案をすべて確認できます。</p></div>
         </div>
         <div class="grid">
           <div class="card col-4"><h3>案件</h3><div class="kpi" id="adminProjectCount">0</div></div>
-          <div class="card col-4"><h3>クリエイター</h3><div class="kpi" id="adminCreatorCount">0</div></div>
+          <div class="card col-4"><h3>表現者</h3><div class="kpi" id="adminCreatorCount">0</div></div>
           <div class="card col-4"><h3>案件提案</h3><div class="kpi" id="adminProposalCount">0</div></div>
           <div class="card col-12">
             <h3>運営確認</h3>
-            <p class="muted">運営側は全画面にアクセスできます。案件登録内容、クリエイター登録内容、提案状況を確認し、必要に応じて差し戻し・承認を行う想定です。</p>
+            <p class="muted">運営側は全画面にアクセスできます。案件登録内容、表現者登録内容、提案状況を確認し、必要に応じて差し戻し・承認を行う想定です。</p>
           </div>
         </div>
       </section>

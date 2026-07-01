@@ -1,4 +1,4 @@
-const tags = ["幻想的","温かい","ダーク","ポップ","和風","サイバー","ミニマル","レトロ","高級感","かわいい","クール","ストリート","独創的","透明感","敗退感"];
+const tags = ["幻想的","温かい","ダーク","ポップ","和風","サイバー","ミニマル","レトロ","高級感","かわいい","クール","ストリート","独創的","透明感","廃退感"];
 const ngOptions = ["政治","宗教","成人向け","暴力表現","AI学習利用","実績非公開","短納期","無償修正多数","著作権譲渡必須","その他"];
 
 const rolePasswords = {
@@ -12,14 +12,14 @@ const roleMenus = {
     ["home", "ホーム", "概要"],
     ["projectForm", "案件登録", "入力"],
     ["projectList", "案件一覧", "確認"],
-    ["creatorSearch", "クリエイター検索", "候補"],
+    ["creatorSearch", "表現者検索", "候補"],
     ["proposalStatus", "提案状況", "進行"],
-    ["creatorList", "クリエイター一覧", "世界観"]
+    ["creatorList", "表現者一覧", "世界観"]
   ],
   creator: [
     ["home", "ホーム", "概要"],
     ["creatorRegister", "プロフィール登録", "本人入力"],
-    ["creatorList", "クリエイター一覧", "表示確認"],
+    ["creatorList", "表現者一覧", "表示確認"],
     ["proposalStatus", "提案状況", "確認"]
   ],
   admin: [
@@ -27,16 +27,16 @@ const roleMenus = {
     ["adminDashboard", "運営ダッシュボード", "全体"],
     ["projectForm", "案件登録", "代行"],
     ["projectList", "案件一覧", "全件"],
-    ["creatorRegister", "クリエイター登録", "代行"],
-    ["creatorList", "クリエイター一覧", "全件"],
-    ["creatorSearch", "クリエイター検索", "候補"],
+    ["creatorRegister", "表現者登録", "代行"],
+    ["creatorList", "表現者一覧", "全件"],
+    ["creatorSearch", "表現者検索", "候補"],
     ["proposalStatus", "提案状況", "全件"]
   ]
 };
 
 const roleLabels = {
   client: "企業側",
-  creator: "クリエイター側",
+  creator: "表現者側",
   admin: "運営側"
 };
 
@@ -73,7 +73,7 @@ const initialState = {
       leadTime: "3〜5週間",
       world: "ストリート、尖った構図、若者向けの強いビジュアルが得意。",
       policy: "見た瞬間に記憶に残る強さを大切にしています。",
-      tags: ["ストリート", "クール", "独創的", "ダーク", "敗退感"],
+      tags: ["ストリート", "クール", "独創的", "ダーク", "廃退感"],
       caution: ["政治", "宗教"],
       ngText: "政治・宗教案件は要確認。",
       works: ["ストリート系キービジュアル", "音楽イベントポスター", "ダークトーンの人物画"]
@@ -163,16 +163,16 @@ function setupRoleView() {
   const actions = document.getElementById("homeActions");
 
   if (currentRole === "client") {
-    title.textContent = "世界観から、最適なクリエイターをご提案します。";
-    text.textContent = "企業が求める雰囲気・思想・ブランドイメージを入力すると、世界観の近いクリエイター候補を抽出します。";
-    actions.innerHTML = `<button class="primary" data-jump="projectForm">案件を登録する</button><button class="ghost" data-jump="creatorList">クリエイターを見る</button>`;
+    title.textContent = "才能ではなく、世界観でつながる。";
+    text.textContent = "企業が求める雰囲気・思想・ブランドイメージを入力すると、世界観の近い表現者候補を抽出します。";
+    actions.innerHTML = `<button class="primary" data-jump="projectForm">案件を登録する</button><button class="ghost" data-jump="creatorList">表現者を見る</button>`;
   } else if (currentRole === "creator") {
     title.textContent = "あなたの個性を、必要としている企業へ。";
     text.textContent = "顔・名前・得意なイメージ・作品を登録し、自分の世界観に合う案件提案を受け取れます。";
     actions.innerHTML = `<button class="primary" data-jump="creatorRegister">プロフィールを登録する</button><button class="ghost" data-jump="proposalStatus">提案状況を見る</button>`;
   } else {
-    title.textContent = "案件・クリエイター・提案を一元管理。";
-    text.textContent = "運営側では企業側、クリエイター側、案件提案の全体を確認し、審査と進行管理を行います。";
+    title.textContent = "案件・表現者・提案を一元管理。";
+    text.textContent = "運営側では企業側、表現者側、案件提案の全体を確認し、審査と進行管理を行います。";
     actions.innerHTML = `<button class="primary" data-jump="adminDashboard">運営ダッシュボード</button><button class="ghost" data-jump="projectList">案件一覧を見る</button>`;
   }
 
@@ -352,7 +352,7 @@ function showCreatorDetail(creatorId) {
         <p class="muted">確認が必要な条件：${creator.caution.join(" / ") || "なし"}</p>
         <p class="muted">${creator.ngText || ""}</p>
         <p class="muted">ポートフォリオ：${creator.url ? `<a href="${creator.url}" target="_blank">${creator.url}</a>` : "未登録"}</p>
-        ${currentRole !== "creator" ? `<button class="primary" data-confirm-proposal="${creator.id}">このクリエイターへ案件提案</button>` : ""}
+        ${currentRole !== "creator" ? `<button class="primary" data-confirm-proposal="${creator.id}">この表現者へ案件提案</button>` : ""}
       </div>
     </div>
   `;
@@ -417,7 +417,7 @@ function openProposalConfirm(creatorId) {
   document.getElementById("proposalConfirmArea").innerHTML = `
     <div class="grid">
       <div class="card col-6">
-        <h3>提案先クリエイター</h3>
+        <h3>提案先表現者</h3>
         <p class="status">${creator.name}</p>
         <p>${creator.world}</p>
         <p class="muted">参考価格：${creator.price} / 納期目安：${creator.leadTime || "要相談"}</p>
@@ -432,7 +432,7 @@ function openProposalConfirm(creatorId) {
       </div>
       <div class="card col-12">
         <h3>確認事項</h3>
-        <p class="muted">この時点では正式契約ではありません。運営確認後、クリエイター本人へ案件内容を共有し、面談・条件合意へ進みます。</p>
+        <p class="muted">この時点では正式契約ではありません。運営確認後、表現者本人へ案件内容を共有し、面談・条件合意へ進みます。</p>
         <button class="primary" id="finalSendProposal">案件提案を送信する</button>
         <button class="ghost" data-jump="creatorSearch">候補検索へ戻る</button>
       </div>
@@ -460,7 +460,7 @@ function sendProposal(creatorId) {
     projectTitle: project.title,
     status: "運営確認中",
     flow: 1,
-    memo: "案件提案を受け付けました。運営確認後、クリエイターへ共有します。",
+    memo: "案件提案を受け付けました。運営確認後、表現者へ共有します。",
     createdAt: new Date().toLocaleString("ja-JP")
   });
 
@@ -489,7 +489,7 @@ function renderProposals() {
         <p class="muted">${proposal.memo}</p>
         <div class="flow">
           <span class="now">運営確認</span>
-          <span>クリエイター確認</span>
+          <span>表現者確認</span>
           <span>面談調整</span>
           <span>面談</span>
           <span>条件合意</span>
@@ -632,7 +632,7 @@ function setupEvents() {
 
     state.creators.push(creator);
     saveState();
-    alert("クリエイタープロフィールを登録しました。");
+    alert("表現者プロフィールを登録しました。");
     navigate("creatorList");
   });
 
@@ -652,3 +652,30 @@ function setupEvents() {
 
 setupEvents();
 render();
+
+
+function setupBrandIntro() {
+  const intro = document.getElementById("brandIntro");
+  const login = document.getElementById("loginScreen");
+  if (!intro || !login) return;
+
+  const seen = localStorage.getItem("wm_brand_intro_seen_v16");
+  if (seen) {
+    intro.style.display = "none";
+    login.classList.remove("intro-wait");
+    login.classList.add("ready");
+    return;
+  }
+
+  setTimeout(() => {
+    intro.classList.add("hide");
+    localStorage.setItem("wm_brand_intro_seen_v16", "1");
+    setTimeout(() => {
+      intro.style.display = "none";
+      login.classList.remove("intro-wait");
+      login.classList.add("ready");
+    }, 1200);
+  }, 6500);
+}
+
+setupBrandIntro();
