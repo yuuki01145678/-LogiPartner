@@ -655,28 +655,7 @@ render();
 
 
 
-function setupBrandIntro() {
-  const intro = document.getElementById("brandIntro");
-  const login = document.getElementById("loginScreen");
-  if (!intro || !login) return;
 
-  // デモ確認用：毎回ブランド演出を表示する
-  intro.style.display = "grid";
-  intro.classList.remove("hide");
-  login.classList.add("intro-wait");
-  login.classList.remove("ready");
-
-  setTimeout(() => {
-    intro.classList.add("hide");
-    setTimeout(() => {
-      intro.style.display = "none";
-      login.classList.remove("intro-wait");
-      login.classList.add("ready");
-    }, 1200);
-  }, 6500);
-}
-
-setupBrandIntro();
 
 
 
@@ -684,3 +663,34 @@ const replayIntroButton = document.getElementById("replayIntroButton");
 if (replayIntroButton) {
   replayIntroButton.addEventListener("click", () => setupBrandIntro());
 }
+
+
+function setupBrandIntro() {
+  const intro = document.getElementById("brandIntro");
+  const login = document.getElementById("loginScreen");
+  if (!intro || !login) return;
+
+  intro.style.display = "flex";
+  intro.classList.remove("hide");
+  login.classList.remove("ready");
+  login.classList.add("intro-wait");
+
+  window.setTimeout(() => {
+    intro.classList.add("hide");
+    window.setTimeout(() => {
+      intro.style.display = "none";
+      login.classList.remove("intro-wait");
+      login.classList.add("ready");
+    }, 1200);
+  }, 6200);
+}
+
+function replayBrandIntro() {
+  setupBrandIntro();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  setupBrandIntro();
+  const replay = document.getElementById("replayIntroButton");
+  if (replay) replay.addEventListener("click", replayBrandIntro);
+});
