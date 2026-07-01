@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LogiPartner Ver.2.1 Scan Boost</title>
+  <title>LogiPartner Ver.2.2 Dual Scanner</title>
   <script src="https://unpkg.com/html5-qrcode" defer></script>
   <link rel="stylesheet" href="./style.css" />
 </head>
@@ -11,23 +11,25 @@
   <main class="app">
     <section class="header">
       <h1>LogiPartner</h1>
-      <p>Ver.2.1｜トートバーコード読み取り強化</p>
+      <p>Ver.2.2｜トート読み取り二段構え</p>
     </section>
 
     <section class="camera-card">
-      <div class="section-title">📷 トートを横長枠に合わせてスキャン</div>
-      <div class="scan-message" id="scanMessage">カメラ起動を押してください。</div>
+      <div class="section-title">📷 トートバーコードをスキャン</div>
+      <div class="scan-message" id="scanMessage">まずは「高精度カメラ起動」を押してください。</div>
 
-      <div id="scannerWrap" class="scanner-wrap">
-        <div id="reader"></div>
-        <div class="scan-tip">
-          バーコード全体を横長の枠に入れて、少し近づけたり離したりしてください。
-        </div>
+      <div id="nativeScanner" class="native-scanner">
+        <video id="video" playsinline muted></video>
+        <div class="scan-line"></div>
       </div>
 
-      <button class="scan-button" onclick="startScanner()">カメラ起動</button>
-      <button class="stop-button" onclick="stopScanner()">スキャン停止</button>
-      <button class="demo-button" onclick="demoScan()">テストトート</button>
+      <div id="htmlScanner" class="html-scanner">
+        <div id="reader"></div>
+      </div>
+
+      <button class="scan-button" onclick="startNativeScanner()">高精度カメラ起動</button>
+      <button class="sub-button" onclick="startHtmlScanner()">別方式で試す</button>
+      <button class="stop-button" onclick="stopAllScanners()">スキャン停止</button>
     </section>
 
     <section class="quick-input">

@@ -1,6 +1,10 @@
 let html5QrCode = null;
 let scannerRunning = false;
-let totes = JSON.parse(localStorage.getItem("logipartner_totes_v21") || "[]");
+let nativeStream = null;
+let nativeDetector = null;
+let nativeLoopRunning = false;
+
+let totes = JSON.parse(localStorage.getItem("logipartner_totes_v22") || "[]");
 let lastScannedText = "";
 let lastScannedAt = 0;
 
@@ -25,17 +29,11 @@ window.addEventListener("load", () => {
   renderDashboard();
 });
 
-function parseTimeToDate(timeText) {
-  const now = new Date();
-  const [h, m] = timeText.split(":").map(Number);
-  const d = new Date(now);
-  d.setHours(h, m, 0, 0);
-  return d;
-}
-
 function minutesUntil(timeText) {
   const now = new Date();
-  const target = parseTimeToDate(timeText);
+  const [h, m] = timeText.split(":").map(Number);
+  const target = new Date(now);
+  target.setHours(h, m, 0, 0);
   return Math.round((target - now) / 60000);
 }
 
@@ -76,7 +74,7 @@ function makeRecord(toteId, cpt, items, checker) {
 
 function saveTotes() {
   totes.sort((a, b) => a.priority - b.priority || a.remain - b.remain || b.priorityCount - a.priorityCount);
-  localStorage.setItem("logipartner_totes_v21", JSON.stringify(totes));
+  localStorage.setItem("logipartner_totes_v22", JSON.stringify(totes));
 }
 
 function addOrUpdateTote(toteId, cpt, items, checker) {
@@ -153,6 +151,7 @@ function handleScannedCode(decodedText) {
   const now = Date.now();
   const cleanText = decodedText.trim();
 
+  if (!cleanText) return;
   if (cleanText === lastScannedText && now - lastScannedAt < 1800) return;
 
   lastScannedText = cleanText;
@@ -174,12 +173,6 @@ function handleScannedCode(decodedText) {
     "読み取り成功：" + cleanText + "　次のトートをそのまま映してください。";
 }
 
-function demoScan() {
-  const demoIds = ["tsOBdy2F089", "DEMO-TOTE-001", "DEMO-TOTE-002", "TOTE-" + Math.floor(1000 + Math.random() * 9000)];
-  const demoCode = demoIds[Math.floor(Math.random() * demoIds.length)];
-  handleScannedCode(demoCode);
-}
-
 function quickManualAdd() {
   const toteId = document.getElementById("quickToteInput").value || "未入力";
   const checker = document.getElementById("checker").value;
@@ -190,21 +183,80 @@ function quickManualAdd() {
 function manualAdd() {
   const toteId = document.getElementById("toteInput").value || "未入力";
   const cpt = document.getElementById("cptInput").value;
-  const items = document.getElementById("itemsInput").value
-    .split(",")
-    .map(s => s.trim())
-    .filter(Boolean);
+  const items = document.getElementById("itemsInput").value.split(",").map(s => s.trim()).filter(Boolean);
   const checker = document.getElementById("checker").value;
-
   addOrUpdateTote(toteId, cpt, items, checker);
 }
 
-async function startScanner() {
-  const scannerWrap = document.getElementById("scannerWrap");
+async function startNativeScanner() {
+  await stopHtmlScanner();
+
+  const scanMessage = document.getElementById("scanMessage");
+  const nativeScanner = document.getElementById("nativeScanner");
+  const htmlScanner = document.getElementById("htmlScanner");
+  const video = document.getElementById("video");
+
+  nativeScanner.style.display = "block";
+  htmlScanner.style.display = "none";
+  scanMessage.textContent = "高精度カメラを起動しています。";
+
+  if (!("BarcodeDetector" in window)) {
+    scanMessage.textContent = "このブラウザは高精度方式に未対応です。「別方式で試す」を押してください。";
+    return;
+  }
+
+  try {
+    nativeDetector = new BarcodeDetector({
+      formats: ["code_128", "code_39", "itf", "codabar", "ean_13", "ean_8", "upc_a", "upc_e"]
+    });
+
+    nativeStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+        focusMode: "continuous"
+      },
+      audio: false
+    });
+
+    video.srcObject = nativeStream;
+    await video.play();
+
+    nativeLoopRunning = true;
+    scanMessage.textContent = "高精度スキャン中。バーコード全体を緑枠に合わせてください。";
+    nativeScanLoop();
+  } catch (err) {
+    scanMessage.textContent = "高精度カメラを起動できませんでした。「別方式で試す」を押してください。";
+  }
+}
+
+async function nativeScanLoop() {
+  const video = document.getElementById("video");
+
+  while (nativeLoopRunning) {
+    try {
+      const barcodes = await nativeDetector.detect(video);
+      if (barcodes && barcodes.length > 0) {
+        const value = barcodes[0].rawValue || "";
+        handleScannedCode(value);
+      }
+    } catch (err) {}
+
+    await new Promise(resolve => setTimeout(resolve, 180));
+  }
+}
+
+async function startHtmlScanner() {
+  await stopNativeScanner();
+
+  const htmlScanner = document.getElementById("htmlScanner");
+  const nativeScanner = document.getElementById("nativeScanner");
   const scanMessage = document.getElementById("scanMessage");
 
-  scannerWrap.style.display = "block";
-  scanMessage.textContent = "カメラを起動しています。許可が出たら許可を押してください。";
+  htmlScanner.style.display = "block";
+  nativeScanner.style.display = "none";
+  scanMessage.textContent = "別方式カメラを起動しています。";
 
   if (!window.Html5Qrcode) {
     scanMessage.textContent = "読み取り機能の読み込みに失敗しました。少し待ってから再読み込みしてください。";
@@ -214,7 +266,7 @@ async function startScanner() {
   if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
 
   if (scannerRunning) {
-    scanMessage.textContent = "すでにスキャン中です。トートバーコードを横長枠に入れてください。";
+    scanMessage.textContent = "すでにスキャン中です。";
     return;
   }
 
@@ -243,18 +295,35 @@ async function startScanner() {
     );
 
     scannerRunning = true;
-    scanMessage.textContent = "スキャン中です。バーコード全体を横長枠に合わせてください。";
+    scanMessage.textContent = "別方式でスキャン中。バーコード全体を横長枠へ。";
   } catch (err) {
     scanMessage.textContent = "カメラを起動できませんでした。ページ更新・カメラ許可・HTTPSを確認してください。";
     scannerRunning = false;
   }
 }
 
-async function stopScanner() {
+async function stopNativeScanner() {
+  nativeLoopRunning = false;
+
+  if (nativeStream) {
+    nativeStream.getTracks().forEach(track => track.stop());
+    nativeStream = null;
+  }
+
+  const video = document.getElementById("video");
+  if (video) video.srcObject = null;
+}
+
+async function stopHtmlScanner() {
   if (html5QrCode && scannerRunning) {
     try { await html5QrCode.stop(); } catch (err) {}
   }
-
   scannerRunning = false;
+}
+
+async function stopAllScanners() {
+  await stopNativeScanner();
+  await stopHtmlScanner();
+
   document.getElementById("scanMessage").textContent = "スキャンを停止しました。";
 }

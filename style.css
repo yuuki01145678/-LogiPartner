@@ -22,16 +22,8 @@ body {
   margin-bottom: 12px;
 }
 
-.header h1 {
-  margin: 0;
-  font-size: 28px;
-}
-
-.header p {
-  margin: 8px 0 0;
-  font-size: 13px;
-  opacity: .9;
-}
+.header h1 { margin: 0; font-size: 28px; }
+.header p { margin: 8px 0 0; font-size: 13px; opacity: .9; }
 
 .camera-card,
 .quick-input,
@@ -61,13 +53,34 @@ body {
   margin-bottom: 8px;
 }
 
-.scanner-wrap {
+.native-scanner,
+.html-scanner {
   display: none;
-  background: #f8fafc;
+  position: relative;
+  background: #111827;
   border: 2px dashed #cbd5e1;
   border-radius: 16px;
-  padding: 8px;
+  overflow: hidden;
+  height: 340px;
   margin-bottom: 10px;
+}
+
+#video {
+  width: 100%;
+  height: 340px;
+  object-fit: cover;
+}
+
+.scan-line {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  top: 50%;
+  height: 95px;
+  transform: translateY(-50%);
+  border: 3px solid #22c55e;
+  border-radius: 14px;
+  box-shadow: 0 0 0 999px rgba(0,0,0,.24);
 }
 
 #reader {
@@ -75,7 +88,6 @@ body {
   height: 340px !important;
   min-height: 340px !important;
   overflow: hidden !important;
-  border-radius: 14px;
   background: #111827;
 }
 
@@ -84,15 +96,6 @@ body {
   width: 100% !important;
   height: 340px !important;
   object-fit: cover !important;
-  border-radius: 14px;
-}
-
-.scan-tip {
-  margin-top: 8px;
-  font-size: 12px;
-  color: #4b5563;
-  font-weight: 800;
-  line-height: 1.45;
 }
 
 button,
@@ -114,10 +117,11 @@ button {
 }
 
 .scan-button { background: #2563eb; }
+.sub-button { background: #7c3aed; }
 .stop-button { background: #6b7280; }
-.demo-button { background: #059669; }
 
-.quick-input label {
+.quick-input label,
+label {
   display: block;
   font-size: 13px;
   font-weight: 900;
@@ -130,9 +134,7 @@ button {
   gap: 8px;
 }
 
-.manual-row button {
-  background: #111827;
-}
+.manual-row button { background: #111827; }
 
 .status {
   font-size: 28px;
@@ -180,9 +182,7 @@ button {
   margin-bottom: 4px;
 }
 
-.info-grid strong {
-  font-size: 19px;
-}
+.info-grid strong { font-size: 19px; }
 
 .priority-title {
   font-weight: 900;
@@ -227,23 +227,9 @@ button {
 }
 
 .summary div:last-child { border-right: none; }
-
-.summary span {
-  display: block;
-  font-size: 13px;
-  font-weight: 900;
-}
-
-.summary strong {
-  display: block;
-  font-size: 26px;
-  margin: 8px 0 4px;
-}
-
-.summary small {
-  font-size: 10px;
-  font-weight: 800;
-}
+.summary span { display: block; font-size: 13px; font-weight: 900; }
+.summary strong { display: block; font-size: 26px; margin: 8px 0 4px; }
+.summary small { font-size: 10px; font-weight: 800; }
 
 .danger-box strong, .danger-box small { color: #dc2626; }
 .safe-box strong, .safe-box small { color: #16a34a; }
@@ -306,11 +292,4 @@ details summary {
   font-weight: 900;
   cursor: pointer;
   margin-bottom: 12px;
-}
-
-label {
-  display: block;
-  font-size: 13px;
-  font-weight: 900;
-  margin-bottom: 6px;
 }
