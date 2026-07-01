@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Worldview Match v1.6.2</title>
+  <title>Worldview Match v1.7</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
@@ -41,9 +41,13 @@
           <b>表現者側</b>
           <span>プロフィール登録・提案確認</span>
         </button>
-        <button class="role-card" data-role-select="admin">
-          <b>運営側</b>
-          <span>全データ確認・審査・進行管理</span>
+        <button class="role-card" data-role-select="owner">
+          <b>オーナー</b>
+          <span>全権限・履歴削除・サブオーナー管理</span>
+        </button>
+        <button class="role-card" data-role-select="subowner">
+          <b>サブオーナー</b>
+          <span>審査・面談調整・案件対応</span>
         </button>
       </div>
 
@@ -56,7 +60,7 @@
       <button id="replayIntroButton" class="ghost full" type="button">起動演出をもう一度見る</button>
 
       <div class="notice small">
-        デモ用パスワード：企業 client123 / 表現者 creator123 / 運営 admin123
+        デモ用パスワード：企業 client123 / 表現者 creator123 / オーナー owner123 / サブオーナー subowner123
       </div>
     </div>
   </section>
@@ -269,6 +273,86 @@
           </div>
         </div>
       </section>
+    
+      <section id="ownerDashboard" class="page hidden">
+        <div class="page-head">
+          <div><h2>オーナーダッシュボード</h2><p>オーナー専用。全データ・権限・監査ログを管理します。</p></div>
+        </div>
+        <div class="grid">
+          <div class="card col-4"><h3>案件</h3><div class="kpi" id="ownerProjectCount">0</div></div>
+          <div class="card col-4"><h3>表現者</h3><div class="kpi" id="ownerCreatorCount">0</div></div>
+          <div class="card col-4"><h3>案件提案</h3><div class="kpi" id="ownerProposalCount">0</div></div>
+          <div class="card col-12">
+            <h3>オーナー権限</h3>
+            <p class="muted">オーナーは全データ閲覧、履歴削除、サブオーナー管理、チャット管理、強制停止、将来的な税務・報酬管理まで操作できます。</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="ownerManagement" class="page hidden">
+        <div class="page-head">
+          <div><h2>オーナー管理</h2><p>最高権限はオーナーのみ。サブオーナーを追加・管理できます。</p></div>
+        </div>
+        <div class="grid">
+          <div class="card col-5">
+            <h3>サブオーナー追加</h3>
+            <div class="field"><label>名前</label><input id="subOwnerName" placeholder="例：山田 太郎" /></div>
+            <div class="field"><label>メール</label><input id="subOwnerEmail" placeholder="example@example.com" /></div>
+            <button class="primary" id="addSubOwnerButton">サブオーナーを追加</button>
+            <div class="notice">サブオーナーは審査・面談調整・チャット対応ができますが、履歴削除・ブランド設定・オーナー追加はできません。</div>
+          </div>
+          <div class="card col-7">
+            <h3>権限一覧</h3>
+            <div id="ownerListArea"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="chatRoom" class="page hidden">
+        <div class="page-head">
+          <div><h2>案件チャット</h2><p>案件ごとに企業・表現者・オーナーがやり取りできます。</p></div>
+        </div>
+        <div class="grid">
+          <div class="card col-5">
+            <h3>チャット案件</h3>
+            <div id="chatProjectList"></div>
+          </div>
+          <div class="card col-7">
+            <h3 id="chatTitle">案件を選択してください</h3>
+            <div id="chatMessages" class="chat-box"></div>
+            <div class="chat-input-row">
+              <input id="chatInput" placeholder="メッセージを入力" />
+              <button class="primary" id="sendChatButton">送信</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="auditLog" class="page hidden">
+        <div class="page-head">
+          <div><h2>監査ログ</h2><p>誰が・いつ・何をしたかを記録します。削除できるのはオーナーだけです。</p></div>
+          <button class="danger" id="clearAuditLogButton">履歴を削除</button>
+        </div>
+        <div class="card"><div id="auditLogArea"></div></div>
+      </section>
+
+      <section id="financeVault" class="page hidden">
+        <div class="page-head">
+          <div><h2>マイ金庫・税務サポート構想</h2><p>報酬管理、源泉徴収、確定申告用データ出力を将来的に統合します。</p></div>
+        </div>
+        <div class="grid">
+          <div class="card col-4"><h3>報酬管理</h3><p class="muted">案件ごとの報酬、振込状況、手数料を管理します。</p></div>
+          <div class="card col-4"><h3>源泉徴収関連</h3><p class="muted">対象報酬・源泉徴収額・支払調書用データを整理します。</p></div>
+          <div class="card col-4"><h3>確定申告サポート</h3><p class="muted">年間売上、経費メモ、領収書、CSV/PDF出力に対応予定。</p></div>
+          <div class="card col-12">
+            <h3>マイ金庫</h3>
+            <div class="vault-grid">
+              <div>📄 契約書</div><div>📄 請求書</div><div>📄 領収書</div><div>📄 税務書類</div><div>🖼️ ポートフォリオ</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 

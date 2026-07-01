@@ -526,3 +526,53 @@ a { color: var(--accent2); }
   pointer-events: auto !important;
   transition: opacity 1s ease;
 }
+
+.chat-box {
+  min-height: 360px;
+  max-height: 460px;
+  overflow: auto;
+  background: #10131b;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 16px;
+}
+.chat-message {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--card2);
+  margin-bottom: 10px;
+}
+.chat-message small {
+  display: block;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.chat-message p {
+  margin: 8px 0 0;
+}
+.chat-input-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  margin-top: 12px;
+}
+.chat-project-button {
+  margin-bottom: 8px;
+}
+.vault-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+.vault-grid div {
+  background: #10131b;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 18px;
+  text-align: center;
+  color: var(--muted);
+}
+@media (max-width: 900px) {
+  .vault-grid { grid-template-columns: 1fr 1fr; }
+  .chat-input-row { grid-template-columns: 1fr; }
+}
