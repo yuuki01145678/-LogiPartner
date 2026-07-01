@@ -41,3 +41,26 @@ textarea{min-height:110px;resize:vertical}
 .field{margin-bottom:14px}.field label{display:block;color:var(--muted);font-size:13px;margin-bottom:7px}.chat-box{height:420px;overflow:auto;background:#10131b;border:1px solid var(--line);border-radius:18px;padding:16px}.msg{background:var(--card2);border-radius:14px;padding:12px;margin-bottom:10px}.msg small{display:block;color:var(--muted)}
 .chat-row{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:12px}.creator-row{display:flex;gap:14px;align-items:flex-start}.avatar{width:72px;height:72px;border-radius:18px;background:#11141c;border:1px solid var(--line);display:grid;place-items:center;color:var(--muted);font-size:11px}.vault-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.vault-grid div{background:#10131b;border:1px solid var(--line);border-radius:16px;padding:20px;text-align:center;color:var(--muted)}
 @media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{height:auto;position:relative}.main{padding:18px}.role-select{grid-template-columns:1fr 1fr}.col-3,.col-4,.col-5,.col-6,.col-7,.col-8,.col-12{grid-column:span 12}.flow{grid-template-columns:1fr 1fr}.item{grid-template-columns:1fr}.vault-grid{grid-template-columns:1fr 1fr}}
+
+/* v2.2.1 boot/login fix */
+.login.login-wait {
+  opacity: 0;
+  pointer-events: none;
+}
+.login.login-ready {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity .9s ease;
+}
+.skip-intro {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 60;
+  background: transparent;
+  border: 1px solid rgba(216,180,106,.35);
+  color: var(--muted);
+}
+body:not(.booting) .intro {
+  display: none !important;
+}
