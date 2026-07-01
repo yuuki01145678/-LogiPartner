@@ -3,356 +3,59 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Worldview Match v1.7</title>
+  <title>Worldview Match v2.0 Dev</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-
-  <section id="brandIntro" class="brand-intro">
-    <div class="intro-inner">
-      <div class="intro-mark">W</div>
-      <div class="intro-name">Worldview Match</div>
-      <div class="intro-copy">才能ではなく、<br>世界観でつながる。</div>
-    </div>
+  <section id="intro" class="intro">
+    <div class="intro-logo">W</div>
+    <div class="intro-name">Worldview Match</div>
+    <div class="intro-copy">才能ではなく、<br>世界観でつながる。</div>
   </section>
 
-
-  
-
-  <section id="loginScreen" class="login-screen intro-wait">
+  <section id="login" class="login hidden">
     <div class="login-card">
-      <div class="brand center">
-        <div class="logo brand-logo">W</div>
-        <div>
-          <h1>Worldview Match</h1>
-          <p>Creative Matching Platform</p>
-        </div>
+      <div class="logo large">W</div>
+      <h1>Worldview Match</h1>
+      <p class="muted">企業・表現者・オーナー・サブオーナーで権限を分けます。</p>
+
+      <div class="role-select">
+        <button class="role on" data-role="client">企業</button>
+        <button class="role" data-role="creator">表現者</button>
+        <button class="role" data-role="owner">オーナー</button>
+        <button class="role" data-role="subowner">サブオーナー</button>
       </div>
 
-      <h2>ログイン</h2>
-      <p class="muted">才能ではなく、世界観でつながる。</p><p class="muted">企業・表現者・運営の権限ごとに表示画面を切り替えます。</p>
-
-      <div class="role-grid">
-        <button class="role-card on" data-role-select="client">
-          <b>企業側</b>
-          <span>案件登録・候補検索・提案状況</span>
-        </button>
-        <button class="role-card" data-role-select="creator">
-          <b>表現者側</b>
-          <span>プロフィール登録・提案確認</span>
-        </button>
-        <button class="role-card" data-role-select="owner">
-          <b>オーナー</b>
-          <span>全権限・履歴削除・サブオーナー管理</span>
-        </button>
-        <button class="role-card" data-role-select="subowner">
-          <b>サブオーナー</b>
-          <span>審査・面談調整・案件対応</span>
-        </button>
-      </div>
-
-      <div class="field">
-        <label>パスワード</label>
-        <input id="passwordInput" type="password" placeholder="パスワードを入力" />
-      </div>
-
-      <button id="loginButton" class="primary full">ログイン</button>
-      <button id="replayIntroButton" class="ghost full" type="button">起動演出をもう一度見る</button>
-
-      <div class="notice small">
-        デモ用パスワード：企業 client123 / 表現者 creator123 / オーナー owner123 / サブオーナー subowner123
-      </div>
+      <input id="password" type="password" placeholder="パスワード" />
+      <button id="loginBtn" class="primary full">ログイン</button>
+      <p class="hint">企業 client123 / 表現者 creator123 / オーナー owner123 / サブ subowner123</p>
     </div>
   </section>
 
-  <div id="appShell" class="app hidden">
+  <div id="app" class="app hidden">
     <aside class="sidebar">
       <div class="brand">
-        <div class="logo brand-logo">W</div>
+        <div class="logo">W</div>
         <div>
-          <h1>Worldview Match</h1>
-          <p id="roleLabel">Client</p>
+          <h2>Worldview Match</h2>
+          <p id="roleName">Role</p>
         </div>
       </div>
-
-      <select class="mobile-menu" id="mobileMenu"></select>
-
-      <nav class="menu" id="sideMenu"></nav>
-
-      <div class="side-policy">
-        <b>運営規定</b><br />
-        候補選択のみで契約成立とはしません。運営確認・本人確認・面談・条件合意を経て正式契約とします。
-        <br /><br />
-        <button id="logoutButton" class="ghost full">ログアウト</button>
-      </div>
+      <nav id="menu" class="menu"></nav>
+      <button id="logoutBtn" class="ghost full">ログアウト</button>
     </aside>
 
     <main class="main">
-      <section id="home" class="page">
-        <div class="grid">
-          <div class="card hero col-12">
-            <span class="badge">Creative Matching Platform</span>
-            <h2 id="homeTitle">才能ではなく、世界観でつながる。</h2>
-            <p id="homeText">
-              企業が求める雰囲気・思想・ブランドイメージを入力すると、
-              世界観の近い表現者候補を抽出。提案後は運営が間に入り、
-              面談・条件合意まで丁寧に進行します。
-            </p>
-            <div class="actions" id="homeActions"></div>
-          </div>
-
-          <div class="card col-12">
-            <h3>基本フロー</h3>
-            <div class="flow">
-              <span>1. 案件登録</span>
-              <span>2. 世界観分析</span>
-              <span class="now">3. 案件提案</span>
-              <span>4. 運営確認</span>
-              <span>5. 面談</span>
-              <span>6. 正式契約</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="projectForm" class="page hidden">
-        <div class="page-head">
-          <div><h2>案件登録</h2><p>求めるクリエイティブの世界観・用途・条件を入力してください。</p></div>
-        </div>
-
-        <div class="grid">
-          <form id="projectFormElement" class="card col-7">
-            <h3>案件情報</h3>
-            <div class="field"><label>会社名</label><input name="company" required value="サンプル株式会社" /></div>
-            <div class="field"><label>担当者名</label><input name="person" required value="田中" /></div>
-            <div class="field"><label>案件名</label><input name="title" required value="新ブランド用メインビジュアル制作" /></div>
-            <div class="field"><label>予算</label><input name="budget" value="50,000円〜150,000円" /></div>
-            <div class="field"><label>希望納期</label><input name="deadline" value="2週間以内" /></div>
-            <div class="field"><label>案件内容</label><textarea name="detail">独創的で記憶に残るブランドイラストを制作したい。SNSとWebサイトで使用予定。</textarea></div>
-            <div class="field"><label>求める世界観</label><div id="projectTagArea" class="tags"></div></div>
-            <div class="field"><label>自由入力</label><textarea name="worldText">少し幻想的で、でも温かさがある。量産型ではなく、この人にしか出せない個性がほしい。</textarea></div>
-            <button class="primary" type="submit">案件を登録する</button>
-          </form>
-
-          <div class="card col-5">
-            <h3>案件登録について</h3>
-            <div class="notice">案件内容は登録後、運営が確認します。企業側では、制作内容・使用範囲・予算・納期を明確に入力してください。</div>
-            <p class="muted">・制作物の使用先が明確か</p>
-            <p class="muted">・希望納期と予算に無理がないか</p>
-            <p class="muted">・正式契約は面談・条件合意後に成立します</p>
-          </div>
-        </div>
-      </section>
-
-      <section id="projectList" class="page hidden">
-        <div class="page-head">
-          <div><h2>案件一覧</h2><p id="projectListText">登録した案件を確認し、候補検索へ進めます。</p></div>
-          <button class="primary" data-jump="projectForm" data-role-show="client admin">新規案件登録</button>
-        </div>
-        <div class="card"><div id="projectListArea"></div></div>
-      </section>
-
-      <section id="creatorSearch" class="page hidden">
-        <div class="page-head">
-          <div><h2>表現者検索</h2><p>選択中案件：<span id="activeProjectName" class="status">未選択</span></p></div>
-          <button class="ghost" data-jump="proposalStatus">提案状況へ</button>
-        </div>
-        <div class="card">
-          <p class="muted">案件の世界観タグと、表現者の得意タグを照合し、相性の高い候補を表示します。</p>
-          <button id="runMatchButton" class="primary">候補を表示する</button>
-          <div id="matchArea"></div>
-        </div>
-      </section>
-
-      <section id="creatorList" class="page hidden">
-        <div class="page-head">
-          <div><h2>表現者一覧</h2><p>登録表現者の世界観・制作ポリシーをご確認いただけます。</p></div>
-          <button class="primary" data-jump="creatorRegister" data-role-show="creator admin">新規登録</button>
-        </div>
-        <div class="card"><div id="creatorListArea"></div></div>
-      </section>
-
-      <section id="creatorRegister" class="page hidden">
-        <div class="page-head">
-          <div><h2>表現者登録</h2><p>顔・名前・得意な世界観・作品を登録する本人向けフォームです。</p></div>
-          <button class="ghost" data-jump="creatorList">一覧へ戻る</button>
-        </div>
-
-        <form id="creatorFormElement">
-          <div class="card wizard">
-            <div class="wizard-steps">
-              <span class="wizard-step on" data-step-indicator="1">1. 基本情報</span>
-              <span class="wizard-step" data-step-indicator="2">2. 得意なイメージ</span>
-              <span class="wizard-step" data-step-indicator="3">3. 作品提出</span>
-              <span class="wizard-step" data-step-indicator="4">4. 確認事項</span>
-            </div>
-
-            <div class="wizard-page" data-wizard-page="1">
-              <h3>基本情報</h3>
-              <div class="grid">
-                <div class="col-6">
-                  <div class="field"><label>顔写真 / アイコン画像</label><input name="faceImage" type="file" accept="image/*" /></div>
-                  <div class="face-preview" id="facePreview">顔写真プレビュー</div>
-                </div>
-                <div class="col-6">
-                  <div class="field"><label>活動名 / 名前</label><input name="name" required value="Noir Atelier" /></div>
-                  <div class="field"><label>連絡先メール</label><input name="email" type="email" placeholder="example@example.com" /></div>
-                  <div class="field"><label>SNS / ポートフォリオURL</label><input name="url" placeholder="https://..." /></div>
-                  <div class="field"><label>参考価格</label><input name="price" value="70,000円〜" /></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="wizard-page hidden" data-wizard-page="2">
-              <h3>どんな世界観が得意ですか？</h3>
-              <div class="field"><label>得意な世界観タグ</label><div id="creatorTagArea" class="tags"></div></div>
-              <div class="field"><label>貴方の世界観を鮮明に教えてください。</label><textarea name="world">シックで重厚感のある世界観、静かな高級感、余白を活かした表現が得意。</textarea></div>
-              <div class="field"><label>貴方の思想を鮮明に教えてください。</label><textarea name="policy">流行に寄せすぎず、ブランドの芯に残る表現を大切にしています。</textarea></div>
-            </div>
-
-            <div class="wizard-page hidden" data-wizard-page="3">
-              <h3>作品を2〜3枚提出</h3>
-              <p class="muted">今はブラウザ内でプレビューする形です。本番ではサーバーに画像保存します。</p>
-              <div class="grid">
-                <div class="col-4"><div class="field"><label>作品1</label><input name="workFile1" type="file" accept="image/*" /></div><div class="work-preview" id="workPreview1">作品1</div></div>
-                <div class="col-4"><div class="field"><label>作品2</label><input name="workFile2" type="file" accept="image/*" /></div><div class="work-preview" id="workPreview2">作品2</div></div>
-                <div class="col-4"><div class="field"><label>作品3</label><input name="workFile3" type="file" accept="image/*" /></div><div class="work-preview" id="workPreview3">作品3</div></div>
-              </div>
-              <div class="field"><label>作品についての補足</label><textarea name="workNote">ブランドビジュアル、SNS用イラスト、キービジュアル制作の実績があります。</textarea></div>
-            </div>
-
-            <div class="wizard-page hidden" data-wizard-page="4">
-              <h3>登録前の確認事項</h3>
-              <div class="notice">登録者本人の安全とサービスの信用を守るため、以下の確認に同意した方のみ登録できます。</div>
-              <label class="checkline"><input type="checkbox" id="confirmNoAntiSocial" /> 暴力団・反社会的勢力、またはそれに準ずる関係者ではありません。</label>
-              <label class="checkline"><input type="checkbox" id="confirmLegal" /> 違法行為、詐欺、危険行為、公序良俗に反する案件には関与しません。</label>
-              <label class="checkline"><input type="checkbox" id="confirmRights" /> 提出する作品は、自分が掲載権限を持つものです。</label>
-              <label class="checkline"><input type="checkbox" id="confirmNg" /> 受けられない案件や確認が必要な条件は、正確に申告します。</label>
-            </div>
-
-            <div class="wizard-actions">
-              <button type="button" class="ghost" id="creatorBackButton">← 戻る</button>
-              <button type="button" class="primary" id="creatorNextButton">次へ</button>
-              <button type="submit" class="primary hidden" id="creatorSubmitButton">プロフィールを登録する</button>
-            </div>
-          </div>
-        </form>
-      </section>
-
-      <section id="creatorDetail" class="page hidden">
-        <div class="page-head">
-          <div><h2 id="detailName">表現者詳細</h2><p id="detailSub" class="muted"></p></div>
-          <button class="ghost" data-jump="creatorList">一覧へ戻る</button>
-        </div>
-        <div id="creatorDetailArea"></div>
-      </section>
-
-      <section id="proposalConfirm" class="page hidden">
-        <div class="page-head">
-          <div><h2>案件提案前の確認</h2><p>送信前に、提案先と案件内容をご確認ください。</p></div>
-        </div>
-        <div id="proposalConfirmArea"></div>
-      </section>
-
-      <section id="proposalStatus" class="page hidden">
-        <div class="page-head"><div><h2>提案状況</h2><p>案件提案後の進行状況を確認できます。</p></div></div>
-        <div class="card"><div id="proposalArea"></div></div>
-      </section>
-
-      <section id="adminDashboard" class="page hidden">
-        <div class="page-head">
-          <div><h2>運営ダッシュボード</h2><p>企業・表現者・案件提案をすべて確認できます。</p></div>
-        </div>
-        <div class="grid">
-          <div class="card col-4"><h3>案件</h3><div class="kpi" id="adminProjectCount">0</div></div>
-          <div class="card col-4"><h3>表現者</h3><div class="kpi" id="adminCreatorCount">0</div></div>
-          <div class="card col-4"><h3>案件提案</h3><div class="kpi" id="adminProposalCount">0</div></div>
-          <div class="card col-12">
-            <h3>運営確認</h3>
-            <p class="muted">運営側は全画面にアクセスできます。案件登録内容、表現者登録内容、提案状況を確認し、必要に応じて差し戻し・承認を行う想定です。</p>
-          </div>
-        </div>
-      </section>
-    
-      <section id="ownerDashboard" class="page hidden">
-        <div class="page-head">
-          <div><h2>オーナーダッシュボード</h2><p>オーナー専用。全データ・権限・監査ログを管理します。</p></div>
-        </div>
-        <div class="grid">
-          <div class="card col-4"><h3>案件</h3><div class="kpi" id="ownerProjectCount">0</div></div>
-          <div class="card col-4"><h3>表現者</h3><div class="kpi" id="ownerCreatorCount">0</div></div>
-          <div class="card col-4"><h3>案件提案</h3><div class="kpi" id="ownerProposalCount">0</div></div>
-          <div class="card col-12">
-            <h3>オーナー権限</h3>
-            <p class="muted">オーナーは全データ閲覧、履歴削除、サブオーナー管理、チャット管理、強制停止、将来的な税務・報酬管理まで操作できます。</p>
-          </div>
-        </div>
-      </section>
-
-      <section id="ownerManagement" class="page hidden">
-        <div class="page-head">
-          <div><h2>オーナー管理</h2><p>最高権限はオーナーのみ。サブオーナーを追加・管理できます。</p></div>
-        </div>
-        <div class="grid">
-          <div class="card col-5">
-            <h3>サブオーナー追加</h3>
-            <div class="field"><label>名前</label><input id="subOwnerName" placeholder="例：山田 太郎" /></div>
-            <div class="field"><label>メール</label><input id="subOwnerEmail" placeholder="example@example.com" /></div>
-            <button class="primary" id="addSubOwnerButton">サブオーナーを追加</button>
-            <div class="notice">サブオーナーは審査・面談調整・チャット対応ができますが、履歴削除・ブランド設定・オーナー追加はできません。</div>
-          </div>
-          <div class="card col-7">
-            <h3>権限一覧</h3>
-            <div id="ownerListArea"></div>
-          </div>
-        </div>
-      </section>
-
-      <section id="chatRoom" class="page hidden">
-        <div class="page-head">
-          <div><h2>案件チャット</h2><p>案件ごとに企業・表現者・オーナーがやり取りできます。</p></div>
-        </div>
-        <div class="grid">
-          <div class="card col-5">
-            <h3>チャット案件</h3>
-            <div id="chatProjectList"></div>
-          </div>
-          <div class="card col-7">
-            <h3 id="chatTitle">案件を選択してください</h3>
-            <div id="chatMessages" class="chat-box"></div>
-            <div class="chat-input-row">
-              <input id="chatInput" placeholder="メッセージを入力" />
-              <button class="primary" id="sendChatButton">送信</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="auditLog" class="page hidden">
-        <div class="page-head">
-          <div><h2>監査ログ</h2><p>誰が・いつ・何をしたかを記録します。削除できるのはオーナーだけです。</p></div>
-          <button class="danger" id="clearAuditLogButton">履歴を削除</button>
-        </div>
-        <div class="card"><div id="auditLogArea"></div></div>
-      </section>
-
-      <section id="financeVault" class="page hidden">
-        <div class="page-head">
-          <div><h2>マイ金庫・税務サポート構想</h2><p>報酬管理、源泉徴収、確定申告用データ出力を将来的に統合します。</p></div>
-        </div>
-        <div class="grid">
-          <div class="card col-4"><h3>報酬管理</h3><p class="muted">案件ごとの報酬、振込状況、手数料を管理します。</p></div>
-          <div class="card col-4"><h3>源泉徴収関連</h3><p class="muted">対象報酬・源泉徴収額・支払調書用データを整理します。</p></div>
-          <div class="card col-4"><h3>確定申告サポート</h3><p class="muted">年間売上、経費メモ、領収書、CSV/PDF出力に対応予定。</p></div>
-          <div class="card col-12">
-            <h3>マイ金庫</h3>
-            <div class="vault-grid">
-              <div>📄 契約書</div><div>📄 請求書</div><div>📄 領収書</div><div>📄 税務書類</div><div>🖼️ ポートフォリオ</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
+      <section id="page-home" class="page"></section>
+      <section id="page-projects" class="page hidden"></section>
+      <section id="page-creators" class="page hidden"></section>
+      <section id="page-match" class="page hidden"></section>
+      <section id="page-proposals" class="page hidden"></section>
+      <section id="page-chat" class="page hidden"></section>
+      <section id="page-owner" class="page hidden"></section>
+      <section id="page-subowners" class="page hidden"></section>
+      <section id="page-audit" class="page hidden"></section>
+      <section id="page-vault" class="page hidden"></section>
     </main>
   </div>
 

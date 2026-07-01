@@ -1,874 +1,106 @@
-const tags = ["幻想的","温かい","ダーク","ポップ","和風","サイバー","ミニマル","レトロ","高級感","かわいい","クール","ストリート","独創的","透明感","廃退感"];
-const ngOptions = ["政治","宗教","成人向け","暴力表現","AI学習利用","実績非公開","短納期","無償修正多数","著作権譲渡必須","その他"];
-
-const rolePasswords = {
-  client: "client123",
-  creator: "creator123",
-  owner: "owner123",
-  subowner: "subowner123"
+const passwords={client:"client123",creator:"creator123",owner:"owner123",subowner:"subowner123"};
+const labels={client:"企業",creator:"表現者",owner:"オーナー",subowner:"サブオーナー"};
+const menus={
+ client:[["home","ホーム"],["projects","案件"],["creators","表現者一覧"],["match","表現者検索"],["proposals","提案状況"],["chat","案件チャット"]],
+ creator:[["home","ホーム"],["creators","プロフィール登録"],["proposals","提案状況"],["chat","案件チャット"],["vault","マイ金庫"]],
+ owner:[["home","ホーム"],["owner","オーナーDB"],["subowners","サブオーナー管理"],["projects","案件管理"],["creators","表現者管理"],["match","表現者検索"],["proposals","提案管理"],["chat","案件チャット"],["audit","監査ログ"],["vault","税務・マイ金庫"]],
+ subowner:[["home","ホーム"],["projects","案件確認"],["creators","表現者確認"],["match","表現者検索"],["proposals","提案管理"],["chat","案件チャット"],["vault","税務閲覧"]]
 };
+const tags=["幻想的","温かい","ダーク","ポップ","和風","サイバー","ミニマル","レトロ","高級感","かわいい","クール","ストリート","独創的","透明感","廃退感"];
+const blank=()=>({projects:[],creators:[
+{id:"c1",name:"Aoi",world:"幻想的で透明感のある、静かな感情表現が得意。",thought:"ブランドの奥にある空気を描きたい。",tags:["幻想的","透明感","温かい"],price:"50,000円〜",works:[],face:""},
+{id:"c2",name:"Riku",world:"ストリート、ダーク、廃退感のある強いビジュアルが得意。",thought:"記憶に残る強さを大切にしています。",tags:["ストリート","ダーク","廃退感"],price:"80,000円〜",works:[],face:""}
+],proposals:[],subowners:[],audit:[],chats:{}});
+let state=JSON.parse(localStorage.getItem("wm_v2")||"null")||blank();
+let role="client", selectedRole="client", activeProject=null, activeChat=null;
+const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+const save=()=>localStorage.setItem("wm_v2",JSON.stringify(state));
+const uid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
+function log(action){state.audit.unshift({id:uid(),role:labels[role],action,time:new Date().toLocaleString("ja-JP")});save();}
+function showLogin(){setTimeout(()=>{$("#intro").classList.add("hide");setTimeout(()=>{$("#intro").classList.add("hidden");$("#login").classList.remove("hidden")},1000)},5200)}
+showLogin();
+$$(".role").forEach(b=>b.onclick=()=>{$$(".role").forEach(x=>x.classList.remove("on"));b.classList.add("on");selectedRole=b.dataset.role});
+$("#loginBtn").onclick=()=>{if($("#password").value!==passwords[selectedRole])return alert("パスワードが違います");role=selectedRole;$("#login").classList.add("hidden");$("#app").classList.remove("hidden");setupApp();};
+$("#logoutBtn").onclick=()=>location.reload();
 
-const roleMenus = {
-  client: [
-    ["home", "ホーム", "概要"],
-    ["projectForm", "案件登録", "入力"],
-    ["projectList", "案件一覧", "確認"],
-    ["creatorSearch", "表現者検索", "候補"],
-    ["proposalStatus", "提案状況", "進行"],
-    ["chatRoom", "案件チャット", "連絡"],
-    ["creatorList", "表現者一覧", "世界観"]
-  ],
-  creator: [
-    ["home", "ホーム", "概要"],
-    ["creatorRegister", "プロフィール登録", "本人入力"],
-    ["creatorList", "表現者一覧", "表示確認"],
-    ["proposalStatus", "提案状況", "確認"],
-    ["chatRoom", "案件チャット", "連絡"],
-    ["financeVault", "マイ金庫", "税務"]
-  ],
-  owner: [
-    ["home", "ホーム", "概要"],
-    ["ownerDashboard", "オーナーDB", "全体"],
-    ["ownerManagement", "オーナー管理", "権限"],
-    ["projectForm", "案件登録", "代行"],
-    ["projectList", "案件一覧", "全件"],
-    ["creatorRegister", "表現者登録", "代行"],
-    ["creatorList", "表現者一覧", "全件"],
-    ["creatorSearch", "表現者検索", "候補"],
-    ["proposalStatus", "提案状況", "全件"],
-    ["chatRoom", "案件チャット", "全件"],
-    ["auditLog", "監査ログ", "履歴"],
-    ["financeVault", "マイ金庫", "税務"]
-  ],
-  subowner: [
-    ["home", "ホーム", "概要"],
-    ["projectList", "案件一覧", "確認"],
-    ["creatorList", "表現者一覧", "確認"],
-    ["creatorSearch", "表現者検索", "候補"],
-    ["proposalStatus", "提案状況", "進行"],
-    ["chatRoom", "案件チャット", "対応"],
-    ["financeVault", "マイ金庫", "閲覧"]
-  ]
-};
-
-const roleLabels = {
-  client: "企業側",
-  creator: "表現者側",
-  owner: "オーナー",
-  subowner: "サブオーナー"
-};
-
-const initialState = {
-  activeProjectId: null,
-  selectedTags: ["幻想的", "温かい", "独創的"],
-  creatorSelectedTags: ["高級感", "ミニマル", "ダーク"],
-  creatorNgTags: ["AI学習利用", "著作権譲渡必須"],
-  pendingProposalCreatorId: null,
-  projects: [],
-  creators: [
-    {
-      id: "creator_aoi",
-      ownerRole: "sample",
-      name: "Aoi",
-      email: "",
-      url: "",
-      price: "50,000円〜",
-      leadTime: "2〜3週間",
-      world: "幻想的、透明感、静かな感情表現、少し儚い雰囲気が得意。",
-      policy: "流行よりも、ブランドの奥にある空気を描きたい。",
-      tags: ["幻想的", "透明感", "温かい"],
-      caution: ["成人向け", "AI学習利用"],
-      ngText: "AI学習利用は不可。",
-      works: ["透明感のある人物イラスト", "夜明けの背景イラスト", "幻想的なブランドビジュアル"]
-    },
-    {
-      id: "creator_riku",
-      ownerRole: "sample",
-      name: "Riku",
-      email: "",
-      url: "",
-      price: "80,000円〜",
-      leadTime: "3〜5週間",
-      world: "ストリート、尖った構図、若者向けの強いビジュアルが得意。",
-      policy: "見た瞬間に記憶に残る強さを大切にしています。",
-      tags: ["ストリート", "クール", "独創的", "ダーク", "廃退感"],
-      caution: ["政治", "宗教"],
-      ngText: "政治・宗教案件は要確認。",
-      works: ["ストリート系キービジュアル", "音楽イベントポスター", "ダークトーンの人物画"]
-    },
-    {
-      id: "creator_mika",
-      ownerRole: "sample",
-      name: "Mika",
-      email: "",
-      url: "",
-      price: "40,000円〜",
-      leadTime: "1〜2週間",
-      world: "かわいい、ポップ、親しみやすいキャラクター表現が得意。",
-      policy: "見る人が少し元気になるデザインを作りたい。",
-      tags: ["かわいい", "ポップ", "温かい"],
-      caution: ["暴力表現"],
-      ngText: "強い暴力表現は不可。",
-      works: ["SNSアイコン", "親しみやすいキャラクター", "ポップな広告用イラスト"]
-    }
-  ],
-  proposals: [],
-  subOwners: [],
-  auditLogs: [],
-  chats: {}
-};
-
-let state = loadState();
-let currentRole = null;
-let selectedLoginRole = "client";
-let creatorWizardStep = 1;
-const creatorDraftImages = { face: "", work1: "", work2: "", work3: "" };
-
-function uid() {
-  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+function setupApp(){
+ $("#roleName").textContent=labels[role];
+ $("#menu").innerHTML=menus[role].map(([p,n])=>`<button data-page="${p}">${n}</button>`).join("");
+ $$("#menu button").forEach(b=>b.onclick=()=>nav(b.dataset.page));
+ nav("home");
 }
-
-function loadState() {
-  const saved = localStorage.getItem("worldview_match_v1_4");
-  return saved ? JSON.parse(saved) : structuredClone(initialState);
+function nav(p){
+ $$(".page").forEach(x=>x.classList.add("hidden"));
+ $("#page-"+p).classList.remove("hidden");
+ $$("#menu button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
+ render(p);
 }
-
-function saveState() {
-  localStorage.setItem("worldview_match_v1_4", JSON.stringify(state));
-  render();
+function head(title,sub=""){return `<div class="page-head"><div><h1>${title}</h1><p class="muted">${sub}</p></div></div>`}
+function render(p){({home,projects,creators,match,proposals,chat,owner,subowners,audit,vault}[p]||home)();}
+function home(){
+ $("#page-home").innerHTML=head(labels[role]+"ホーム","才能ではなく、世界観でつながる。")+`
+ <div class="grid">
+  <div class="card col-12"><h2>Worldview Match</h2><p class="muted">世界観を軸に、企業と表現者をつなぐシックなプラットフォーム。</p></div>
+  <div class="card col-4"><h3>案件</h3><div class="kpi">${state.projects.length}</div></div>
+  <div class="card col-4"><h3>表現者</h3><div class="kpi">${state.creators.length}</div></div>
+  <div class="card col-4"><h3>提案</h3><div class="kpi">${state.proposals.length}</div></div>
+ </div>`;
 }
-
-function login(role) {
-  const password = document.getElementById("passwordInput").value;
-  if (password !== rolePasswords[role]) {
-    alert("パスワードが違います。");
-    return;
-  }
-  currentRole = role;
-  document.getElementById("loginScreen").classList.add("hidden");
-  document.getElementById("appShell").classList.remove("hidden");
-  setupRoleView();
-  navigate("home");
+function tagPicker(selected){return tags.map(t=>`<span class="tag ${selected.includes(t)?"on":""}" data-tag="${t}">${t}</span>`).join("")}
+function projects(){
+ const canEdit=role==="client"||role==="owner";
+ $("#page-projects").innerHTML=head("案件管理","企業は案件登録、オーナーは全件確認できます。")+`
+ ${canEdit?`<div class="card"><h3>案件登録</h3>
+ <div class="grid"><div class="col-6 field"><label>会社名</label><input id="pCompany" value="サンプル株式会社"></div><div class="col-6 field"><label>案件名</label><input id="pTitle" value="新ブランド用メインビジュアル"></div></div>
+ <div class="field"><label>案件内容</label><textarea id="pDetail">世界観のあるキービジュアルを制作したい。</textarea></div>
+ <div class="field"><label>求める世界観</label><div id="pTags">${tagPicker(["高級感","独創的"])}</div></div>
+ <button class="primary" id="addProject">案件を登録</button></div>`:""}
+ <div class="card"><h3>案件一覧</h3><div id="projectList"></div></div>`;
+ let selected=["高級感","独創的"];
+ if(canEdit){$$("#pTags .tag").forEach(t=>t.onclick=()=>{selected=selected.includes(t.dataset.tag)?selected.filter(x=>x!==t.dataset.tag):[...selected,t.dataset.tag];$("#pTags").innerHTML=tagPicker(selected);projects()});$("#addProject").onclick=()=>{const p={id:uid(),company:$("#pCompany").value,title:$("#pTitle").value,detail:$("#pDetail").value,tags:selected,status:"候補検索可能",created:new Date().toLocaleString("ja-JP")};state.projects.push(p);activeProject=p.id;log("案件登録："+p.title);save();projects();};}
+ $("#projectList").innerHTML=state.projects.length?state.projects.map(p=>`<div class="item"><div><h3>${p.title}</h3><p>${p.company}</p><p class="muted">${p.detail}</p>${p.tags.map(t=>`<span class="pill">${t}</span>`).join("")}<p>状態：<span class="status">${p.status}</span></p></div><div><button class="primary" onclick="activeProject='${p.id}';nav('match')">この案件で検索</button></div></div>`).join(""):"<p class='muted'>案件はまだありません。</p>";
 }
-
-function logout() {
-  currentRole = null;
-  document.getElementById("passwordInput").value = "";
-  document.getElementById("appShell").classList.add("hidden");
-  document.getElementById("loginScreen").classList.remove("hidden");
+function creators(){
+ const canRegister=role==="creator"||role==="owner";
+ $("#page-creators").innerHTML=head("表現者管理","表現者の世界観・思想・作品を管理します。")+`
+ ${canRegister?`<div class="card"><h3>表現者登録</h3><div class="grid"><div class="col-6 field"><label>名前</label><input id="cName" value="Noir Atelier"></div><div class="col-6 field"><label>参考価格</label><input id="cPrice" value="70,000円〜"></div></div>
+ <div class="field"><label>貴方の世界観を鮮明に教えてください。</label><textarea id="cWorld">シックで重厚感のある世界観、静かな高級感、余白を活かした表現が得意。</textarea></div>
+ <div class="field"><label>貴方の思想を鮮明に教えてください。</label><textarea id="cThought">流行に寄せすぎず、ブランドの芯に残る表現を大切にしています。</textarea></div>
+ <div class="field"><label>得意タグ</label><div id="cTags">${tagPicker(["高級感","ミニマル","廃退感"])}</div></div>
+ <div class="notice"><label><input type="checkbox" id="cCheck"> 反社会的勢力ではなく、作品掲載権限を持ち、NG条件を正確に申告します。</label></div>
+ <button class="primary" id="addCreator">登録</button></div>`:""}
+ <div class="card"><h3>表現者一覧</h3><div id="creatorList"></div></div>`;
+ let selected=["高級感","ミニマル","廃退感"];
+ if(canRegister){$$("#cTags .tag").forEach(t=>t.onclick=()=>{selected=selected.includes(t.dataset.tag)?selected.filter(x=>x!==t.dataset.tag):[...selected,t.dataset.tag];$("#cTags").innerHTML=tagPicker(selected);});$("#addCreator").onclick=()=>{if(!$("#cCheck").checked)return alert("確認事項に同意してください");const c={id:uid(),name:$("#cName").value,price:$("#cPrice").value,world:$("#cWorld").value,thought:$("#cThought").value,tags:selected,works:[],face:""};state.creators.push(c);log("表現者登録："+c.name);save();creators();};}
+ $("#creatorList").innerHTML=state.creators.map(c=>`<div class="item"><div class="creator-row"><div class="avatar">W</div><div><h3>${c.name}</h3><p>${c.world}</p><p class="muted">${c.thought}</p>${c.tags.map(t=>`<span class="pill">${t}</span>`).join("")}<p class="muted">${c.price}</p></div></div></div>`).join("");
 }
-
-function setupRoleView() {
-  document.getElementById("roleLabel").textContent = roleLabels[currentRole];
-  const menu = document.getElementById("sideMenu");
-  const mobile = document.getElementById("mobileMenu");
-  const items = roleMenus[currentRole];
-
-  let html = `<div class="menu-title">${roleLabels[currentRole]}</div>`;
-  html += items.map(([page, label, sub]) => `<button data-page="${page}">${label} <small>${sub}</small></button>`).join("");
-  menu.innerHTML = html;
-
-  mobile.innerHTML = items.map(([page, label]) => `<option value="${page}">${label}</option>`).join("");
-
-  menu.querySelectorAll("button").forEach(button => {
-    button.addEventListener("click", () => navigate(button.dataset.page));
-  });
-
-  document.querySelectorAll("[data-role-show]").forEach(el => {
-    const allowed = el.dataset.roleShow.split(" ");
-    el.classList.toggle("hidden", !allowed.includes(currentRole));
-  });
-
-  const title = document.getElementById("homeTitle");
-  const text = document.getElementById("homeText");
-  const actions = document.getElementById("homeActions");
-
-  if (currentRole === "client") {
-    title.textContent = "才能ではなく、世界観でつながる。";
-    text.textContent = "企業が求める雰囲気・思想・ブランドイメージを入力すると、世界観の近い表現者候補を抽出します。";
-    actions.innerHTML = `<button class="primary" data-jump="projectForm">案件を登録する</button><button class="ghost" data-jump="creatorList">表現者を見る</button>`;
-  } else if (currentRole === "creator") {
-    title.textContent = "あなたの個性を、必要としている企業へ。";
-    text.textContent = "顔・名前・得意なイメージ・作品を登録し、自分の世界観に合う案件提案を受け取れます。";
-    actions.innerHTML = `<button class="primary" data-jump="creatorRegister">プロフィールを登録する</button><button class="ghost" data-jump="proposalStatus">提案状況を見る</button>`;
-  } else if (currentRole === "owner") {
-    title.textContent = "オーナーとして、すべてを管理する。";
-    text.textContent = "運営側では企業側、表現者側、案件提案の全体を確認し、審査と進行管理を行います。";
-    actions.innerHTML = `<button class="primary" data-jump="ownerDashboard">オーナーダッシュボード</button><button class="ghost" data-jump="ownerManagement">オーナー管理</button>`;
-  } else {
-    title.textContent = "サブオーナーとして、運営を支える。";
-    text.textContent = "サブオーナーは審査、面談調整、案件チャット対応を行えます。履歴削除や権限変更はできません。";
-    actions.innerHTML = `<button class="primary" data-jump="projectList">案件一覧</button><button class="ghost" data-jump="chatRoom">案件チャット</button>`;
-  }
-
-  document.querySelectorAll("[data-jump]").forEach(button => {
-    button.onclick = () => navigate(button.dataset.jump);
-  });
+function match(){
+ const p=state.projects.find(x=>x.id===activeProject);
+ $("#page-match").innerHTML=head("表現者検索",p?`選択中案件：${p.title}`:"案件未選択")+`<div class="card"><button class="primary" id="runMatch">候補を表示</button><div id="matchList"></div></div>`;
+ $("#runMatch").onclick=()=>{if(!p)return alert("案件を選択してください");const list=state.creators.map(c=>({...c,score:Math.round(c.tags.filter(t=>p.tags.includes(t)).length/Math.max(p.tags.length,1)*100)})).sort((a,b)=>b.score-a.score);$("#matchList").innerHTML=list.map(c=>`<div class="item"><div><h3>${c.name}</h3><p>${c.world}</p>${c.tags.map(t=>`<span class="pill">${t}</span>`).join("")}</div><div><div class="kpi">${c.score}%</div><button class="primary" onclick="sendProposal('${p.id}','${c.id}')">案件提案</button></div></div>`).join("")};
 }
-
-function allowedPage(pageId) {
-  return roleMenus[currentRole]?.some(([page]) => page === pageId) || ["creatorDetail", "proposalConfirm"].includes(pageId);
+window.sendProposal=(pid,cid)=>{const p=state.projects.find(x=>x.id===pid),c=state.creators.find(x=>x.id===cid);state.proposals.push({id:uid(),projectId:pid,creatorId:cid,project:p.title,creator:c.name,status:"運営確認中",created:new Date().toLocaleString("ja-JP")});p.status="案件提案済み";log(`案件提案：${p.title} → ${c.name}`);save();nav("proposals")};
+function proposals(){
+ $("#page-proposals").innerHTML=head("提案状況","運営確認、面談、条件合意まで管理します。")+`<div class="card">${state.proposals.length?state.proposals.map(pr=>`<div class="item"><div><h3>${pr.creator}</h3><p>${pr.project}</p><p>状態：<span class="status">${pr.status}</span></p><div class="flow"><span class="now">運営確認</span><span>表現者確認</span><span>面談</span><span>条件合意</span><span>正式契約</span><span>完了</span></div></div></div>`).join(""):"<p class='muted'>提案はまだありません。</p>"}</div>`;
 }
-
-function navigate(pageId) {
-  if (!allowedPage(pageId)) {
-    alert("この画面を見る権限がありません。");
-    pageId = "home";
-  }
-
-  document.querySelectorAll(".page").forEach(page => page.classList.add("hidden"));
-  document.getElementById(pageId).classList.remove("hidden");
-
-  document.querySelectorAll(".menu button").forEach(button => {
-    button.classList.toggle("active", button.dataset.page === pageId);
-  });
-
-  const mobile = document.getElementById("mobileMenu");
-  if (mobile && [...mobile.options].some(o => o.value === pageId)) mobile.value = pageId;
-
-  render();
-  window.scrollTo({ top: 0, behavior: "smooth" });
+function chat(){
+ $("#page-chat").innerHTML=head("案件チャット","案件ごとに企業・表現者・オーナーがやり取りできます。")+`<div class="grid"><div class="card col-5">${state.projects.map(p=>`<button class="ghost full" onclick="activeChat='${p.id}';chat()">${p.title}</button>`).join("")||"<p class='muted'>案件がありません。</p>"}</div><div class="card col-7"><h3>${state.projects.find(p=>p.id===activeChat)?.title||"案件を選択"}</h3><div class="chat-box" id="chatBox"></div><div class="chat-row"><input id="chatText" placeholder="メッセージ"><button class="primary" id="chatSend">送信</button></div></div></div>`;
+ const box=$("#chatBox"); if(activeChat){state.chats[activeChat]=state.chats[activeChat]||[];box.innerHTML=state.chats[activeChat].map(m=>`<div class="msg"><b>${m.role}</b><small>${m.time}</small><p>${m.text}</p></div>`).join("")||"<p class='muted'>まだメッセージはありません。</p>";}
+ $("#chatSend").onclick=()=>{if(!activeChat)return alert("案件を選択してください");const text=$("#chatText").value.trim();if(!text)return;state.chats[activeChat].push({role:labels[role],text,time:new Date().toLocaleString("ja-JP")});log("チャット送信："+text.slice(0,30));save();chat();};
 }
-
-function getActiveProject() {
-  return state.projects.find(project => project.id === state.activeProjectId) || null;
+function owner(){
+ $("#page-owner").innerHTML=head("オーナーダッシュボード","雄汽 大庭専用の最高権限画面。")+`<div class="grid"><div class="card col-3"><h3>案件</h3><div class="kpi">${state.projects.length}</div></div><div class="card col-3"><h3>表現者</h3><div class="kpi">${state.creators.length}</div></div><div class="card col-3"><h3>提案</h3><div class="kpi">${state.proposals.length}</div></div><div class="card col-3"><h3>サブ</h3><div class="kpi">${state.subowners.length}</div></div><div class="card col-12"><h3>オーナー権限</h3><p class="muted">全データ閲覧、履歴削除、サブオーナー追加、チャット確認、税務構想管理。</p></div></div>`;
 }
-
-function makeTags(areaId, sourceTags, selected, onClick) {
-  const area = document.getElementById(areaId);
-  if (!area) return;
-  area.innerHTML = sourceTags.map(tag => {
-    const active = selected.includes(tag) ? "on" : "";
-    return `<span class="tag ${active}" data-tag="${tag}">${tag}</span>`;
-  }).join("");
-
-  area.querySelectorAll(".tag").forEach(element => {
-    element.addEventListener("click", () => onClick(element.dataset.tag));
-  });
+function subowners(){
+ $("#page-subowners").innerHTML=head("サブオーナー管理","追加・削除できるのはオーナーのみ。")+`<div class="grid"><div class="card col-5"><div class="field"><label>名前</label><input id="soName"></div><div class="field"><label>メール</label><input id="soEmail"></div><button class="primary" id="soAdd">追加</button></div><div class="card col-7" id="soList"></div></div>`;
+ $("#soAdd").onclick=()=>{if(role!=="owner")return alert("オーナーのみ可能です");const so={id:uid(),name:$("#soName").value,email:$("#soEmail").value};state.subowners.push(so);log("サブオーナー追加："+so.name);save();subowners();};
+ $("#soList").innerHTML=`<div class="item"><div><h3>👑 雄汽 大庭</h3><p class="muted">最高権限オーナー</p></div></div>`+state.subowners.map(so=>`<div class="item"><div><h3>⭐ ${so.name}</h3><p>${so.email}</p></div><div><button class="danger" onclick="removeSO('${so.id}')">削除</button></div></div>`).join("");
 }
-
-function renderTags() {
-  makeTags("projectTagArea", tags, state.selectedTags, tag => {
-    state.selectedTags = state.selectedTags.includes(tag)
-      ? state.selectedTags.filter(item => item !== tag)
-      : [...state.selectedTags, tag];
-    saveState();
-  });
-
-  makeTags("creatorTagArea", tags, state.creatorSelectedTags, tag => {
-    state.creatorSelectedTags = state.creatorSelectedTags.includes(tag)
-      ? state.creatorSelectedTags.filter(item => item !== tag)
-      : [...state.creatorSelectedTags, tag];
-    saveState();
-  });
-
-  makeTags("creatorNgArea", ngOptions, state.creatorNgTags, tag => {
-    state.creatorNgTags = state.creatorNgTags.includes(tag)
-      ? state.creatorNgTags.filter(item => item !== tag)
-      : [...state.creatorNgTags, tag];
-    saveState();
-  });
+window.removeSO=id=>{if(role!=="owner")return alert("オーナーのみ可能です");const so=state.subowners.find(x=>x.id===id);state.subowners=state.subowners.filter(x=>x.id!==id);log("サブオーナー削除："+so.name);save();subowners()};
+function audit(){
+ $("#page-audit").innerHTML=head("監査ログ","削除できるのはオーナーのみ。")+`<div class="card"><button class="danger" id="clearLog">履歴削除</button>${state.audit.map(a=>`<div class="item"><div><h3>${a.action}</h3><p class="muted">${a.time} / ${a.role}</p></div></div>`).join("")||"<p class='muted'>履歴はありません。</p>"}</div>`;
+ $("#clearLog").onclick=()=>{if(role!=="owner")return alert("履歴削除はオーナーのみ可能です");if(confirm("履歴を削除しますか？")){state.audit=[];save();audit();}};
 }
-
-function visibleProjects() {
-  return state.projects;
+function vault(){
+ $("#page-vault").innerHTML=head("マイ金庫・税務サポート","源泉徴収・確定申告用データは将来機能として拡張。")+`<div class="grid"><div class="card col-4"><h3>報酬管理</h3><p class="muted">案件ごとの報酬・振込状況。</p></div><div class="card col-4"><h3>源泉徴収</h3><p class="muted">支払調書・源泉徴収関連データ。</p></div><div class="card col-4"><h3>確定申告</h3><p class="muted">年間売上・経費・CSV/PDF出力。</p></div><div class="card col-12"><div class="vault-grid"><div>📄 契約書</div><div>📄 請求書</div><div>📄 領収書</div><div>📄 税務書類</div><div>🖼️ 作品</div></div></div></div>`;
 }
-
-function visibleCreators() {
-  return state.creators;
-}
-
-function visibleProposals() {
-  return state.proposals;
-}
-
-function renderProjects() {
-  const area = document.getElementById("projectListArea");
-  if (!area) return;
-
-  const projects = visibleProjects();
-  if (projects.length === 0) {
-    area.innerHTML = `<p class="muted">案件はまだ登録されていません。</p>`;
-    return;
-  }
-
-  area.innerHTML = projects.map(project => `
-    <div class="match-card">
-      <div>
-        <h3>${project.title}</h3>
-        <p>${project.company} / ${project.person}</p>
-        <p class="muted">${project.detail}</p>
-        <div>${project.tags.map(tag => `<span class="pill">${tag}</span>`).join("")}</div>
-        <p class="muted">予算：${project.budget} / 納期：${project.deadline}</p>
-        <p>進行状況：<span class="status">${project.status}</span></p>
-      </div>
-      <div>
-        <button class="primary" data-select-project="${project.id}">この案件で候補を見る</button>
-      </div>
-    </div>
-  `).join("");
-
-  area.querySelectorAll("[data-select-project]").forEach(button => {
-    button.addEventListener("click", () => {
-      state.activeProjectId = button.dataset.selectProject;
-      saveState();
-      navigate("creatorSearch");
-    });
-  });
-}
-
-function renderCreators() {
-  const area = document.getElementById("creatorListArea");
-  if (!area) return;
-
-  const creators = visibleCreators();
-  area.innerHTML = creators.map(creator => `
-    <div class="match-card">
-      <div>
-        <div class="creator-row">
-          ${creator.faceImage ? `<img class="creator-avatar" src="${creator.faceImage}" alt="${creator.name}" />` : `<div class="creator-avatar empty">No Image</div>`}
-          <div>
-            <h3>${creator.name}</h3>
-            <p>${creator.world}</p>
-          </div>
-        </div>
-        <p class="muted">${creator.policy}</p>
-        <div>${creator.tags.map(tag => `<span class="pill">${tag}</span>`).join("")}</div>
-        <p class="muted">参考価格：${creator.price} / 納期目安：${creator.leadTime || "要相談"}</p>
-        <p class="muted">確認が必要な条件：${creator.caution.join(" / ") || "なし"}</p>
-      </div>
-      <div>
-        <button class="primary" data-detail-creator="${creator.id}">詳細を見る</button>
-      </div>
-    </div>
-  `).join("");
-
-  area.querySelectorAll("[data-detail-creator]").forEach(button => {
-    button.addEventListener("click", () => showCreatorDetail(button.dataset.detailCreator));
-  });
-}
-
-function showCreatorDetail(creatorId) {
-  const creator = state.creators.find(item => item.id === creatorId);
-  document.getElementById("detailName").textContent = creator.name;
-  document.getElementById("detailSub").textContent = `${creator.price} / 納期目安：${creator.leadTime || "要相談"}`;
-
-  document.getElementById("creatorDetailArea").innerHTML = `
-    <div class="grid">
-      <div class="card col-7">
-        <div class="creator-row detail">
-          ${creator.faceImage ? `<img class="creator-avatar large" src="${creator.faceImage}" alt="${creator.name}" />` : `<div class="creator-avatar large empty">No Image</div>`}
-          <div>
-            <h3>世界観</h3>
-            <p>${creator.world}</p>
-          </div>
-        </div>
-        <h3>制作ポリシー</h3>
-        <p class="muted">${creator.policy}</p>
-        <div>${creator.tags.map(tag => `<span class="pill">${tag}</span>`).join("")}</div>
-        <h3>作品ギャラリー</h3>
-        <div class="gallery">
-          ${(creator.workImages || []).map((img, idx) => img ? `<div class="work image"><img src="${img}" alt="work ${idx + 1}" /></div>` : "").join("") || (creator.works || []).map(work => `<div class="work">${work}</div>`).join("") || `<div class="work">作品未登録</div>`}
-        </div>
-        ${creator.workNote ? `<p class="muted">${creator.workNote}</p>` : ""}
-      </div>
-      <div class="card col-5">
-        <h3>依頼前の確認</h3>
-        <p class="muted">確認が必要な条件：${creator.caution.join(" / ") || "なし"}</p>
-        <p class="muted">${creator.ngText || ""}</p>
-        <p class="muted">ポートフォリオ：${creator.url ? `<a href="${creator.url}" target="_blank">${creator.url}</a>` : "未登録"}</p>
-        ${currentRole !== "creator" ? `<button class="primary" data-confirm-proposal="${creator.id}">この表現者へ案件提案</button>` : ""}
-      </div>
-    </div>
-  `;
-
-  const proposalButton = document.querySelector("[data-confirm-proposal]");
-  if (proposalButton) proposalButton.addEventListener("click", () => openProposalConfirm(creatorId));
-  navigate("creatorDetail");
-}
-
-function scoreCreator(creator, project) {
-  const matched = creator.tags.filter(tag => project.tags.includes(tag)).length;
-  return Math.round((matched / Math.max(project.tags.length, 1)) * 100);
-}
-
-function runMatch() {
-  const project = getActiveProject();
-  const area = document.getElementById("matchArea");
-
-  if (!project) {
-    alert("先に案件一覧から案件を選んでください。");
-    return;
-  }
-
-  const rankedCreators = state.creators
-    .map(creator => ({ ...creator, score: scoreCreator(creator, project) }))
-    .sort((a, b) => b.score - a.score);
-
-  area.innerHTML = rankedCreators.map(creator => `
-    <div class="match-card">
-      <div>
-        <h3>${creator.name}</h3>
-        <p>${creator.world}</p>
-        <p class="muted">${creator.policy}</p>
-        <div>${creator.tags.map(tag => `<span class="pill">${tag}</span>`).join("")}</div>
-        <p class="muted">参考価格：${creator.price}</p>
-      </div>
-      <div>
-        <div class="score">${creator.score}%</div>
-        <button class="ghost" data-detail-creator="${creator.id}">詳細を見る</button>
-        <button class="primary" data-confirm-proposal="${creator.id}">案件提案へ</button>
-      </div>
-    </div>
-  `).join("");
-
-  area.querySelectorAll("[data-detail-creator]").forEach(button => {
-    button.addEventListener("click", () => showCreatorDetail(button.dataset.detailCreator));
-  });
-  area.querySelectorAll("[data-confirm-proposal]").forEach(button => {
-    button.addEventListener("click", () => openProposalConfirm(button.dataset.confirmProposal));
-  });
-}
-
-function openProposalConfirm(creatorId) {
-  const project = getActiveProject();
-  if (!project) {
-    alert("先に案件を選択してください。");
-    return;
-  }
-
-  const creator = state.creators.find(item => item.id === creatorId);
-
-  document.getElementById("proposalConfirmArea").innerHTML = `
-    <div class="grid">
-      <div class="card col-6">
-        <h3>提案先表現者</h3>
-        <p class="status">${creator.name}</p>
-        <p>${creator.world}</p>
-        <p class="muted">参考価格：${creator.price} / 納期目安：${creator.leadTime || "要相談"}</p>
-        <div>${creator.tags.map(tag => `<span class="pill">${tag}</span>`).join("")}</div>
-      </div>
-      <div class="card col-6">
-        <h3>提案案件</h3>
-        <p class="status">${project.title}</p>
-        <p>${project.company} / ${project.person}</p>
-        <p class="muted">${project.detail}</p>
-        <p class="muted">予算：${project.budget} / 納期：${project.deadline}</p>
-      </div>
-      <div class="card col-12">
-        <h3>確認事項</h3>
-        <p class="muted">この時点では正式契約ではありません。運営確認後、表現者本人へ案件内容を共有し、面談・条件合意へ進みます。</p>
-        <button class="primary" id="finalSendProposal">案件提案を送信する</button>
-        <button class="ghost" data-jump="creatorSearch">候補検索へ戻る</button>
-      </div>
-    </div>
-  `;
-
-  document.getElementById("finalSendProposal").addEventListener("click", () => sendProposal(creatorId));
-  document.querySelectorAll("[data-jump]").forEach(button => {
-    button.onclick = () => navigate(button.dataset.jump);
-  });
-
-  navigate("proposalConfirm");
-}
-
-function sendProposal(creatorId) {
-  const project = getActiveProject();
-  const creator = state.creators.find(item => item.id === creatorId);
-
-  state.proposals.push({
-    id: uid(),
-    creatorId,
-    creatorName: creator.name,
-    projectId: project.id,
-    company: project.company,
-    projectTitle: project.title,
-    status: "運営確認中",
-    flow: 1,
-    memo: "案件提案を受け付けました。運営確認後、表現者へ共有します。",
-    createdAt: new Date().toLocaleString("ja-JP")
-  });
-
-  project.status = "案件提案済み";
-  addAudit(`案件提案：${project.title} → ${creator.name}`);
-  saveState();
-  alert(`${creator.name}さんへの案件提案を受け付けました。`);
-  navigate("proposalStatus");
-}
-
-function renderProposals() {
-  const area = document.getElementById("proposalArea");
-  if (!area) return;
-
-  const proposals = visibleProposals();
-  if (proposals.length === 0) {
-    area.innerHTML = `<p class="muted">案件提案はまだありません。</p>`;
-    return;
-  }
-
-  area.innerHTML = proposals.map(proposal => `
-    <div class="match-card">
-      <div>
-        <h3>${proposal.creatorName}</h3>
-        <p>${proposal.company} / ${proposal.projectTitle}</p>
-        <p>進行状況：<span class="status">${proposal.status}</span></p>
-        <p class="muted">${proposal.memo}</p>
-        <div class="flow">
-          <span class="now">運営確認</span>
-          <span>表現者確認</span>
-          <span>面談調整</span>
-          <span>面談</span>
-          <span>条件合意</span>
-          <span>正式契約</span>
-        </div>
-      </div>
-    </div>
-  `).join("");
-}
-
-function renderActiveProject() {
-  const element = document.getElementById("activeProjectName");
-  if (!element) return;
-  const project = getActiveProject();
-  element.textContent = project ? project.title : "未選択";
-}
-
-function renderAdminDashboard() {
-  const p = document.getElementById("adminProjectCount");
-  const c = document.getElementById("adminCreatorCount");
-  const pr = document.getElementById("adminProposalCount");
-  if (p) p.textContent = state.projects.length;
-  if (c) c.textContent = state.creators.length;
-  if (pr) pr.textContent = state.proposals.length;
-}
-
-function setCreatorWizardStep(step) {
-  creatorWizardStep = Math.max(1, Math.min(4, step));
-  document.querySelectorAll("[data-wizard-page]").forEach(page => {
-    page.classList.toggle("hidden", page.dataset.wizardPage !== String(creatorWizardStep));
-  });
-  document.querySelectorAll("[data-step-indicator]").forEach(item => {
-    item.classList.toggle("on", item.dataset.stepIndicator === String(creatorWizardStep));
-  });
-
-  const back = document.getElementById("creatorBackButton");
-  const next = document.getElementById("creatorNextButton");
-  const submit = document.getElementById("creatorSubmitButton");
-  if (back) back.style.visibility = creatorWizardStep === 1 ? "hidden" : "visible";
-  if (next) next.classList.toggle("hidden", creatorWizardStep === 4);
-  if (submit) submit.classList.toggle("hidden", creatorWizardStep !== 4);
-}
-
-function previewImage(input, targetId, key) {
-  const file = input.files && input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = event => {
-    creatorDraftImages[key] = event.target.result;
-    const target = document.getElementById(targetId);
-    target.innerHTML = `<img src="${event.target.result}" alt="preview" />`;
-  };
-  reader.readAsDataURL(file);
-}
-
-
-function addAudit(action) {
-  if (!state.auditLogs) state.auditLogs = [];
-  state.auditLogs.unshift({
-    id: uid(),
-    role: roleLabels[currentRole] || currentRole,
-    action,
-    time: new Date().toLocaleString("ja-JP")
-  });
-  localStorage.setItem("worldview_match_v1_4", JSON.stringify(state));
-}
-
-function renderOwnerDashboard() {
-  const p = document.getElementById("ownerProjectCount");
-  const c = document.getElementById("ownerCreatorCount");
-  const pr = document.getElementById("ownerProposalCount");
-  if (p) p.textContent = state.projects.length;
-  if (c) c.textContent = state.creators.length;
-  if (pr) pr.textContent = state.proposals.length;
-}
-
-function renderOwners() {
-  const area = document.getElementById("ownerListArea");
-  if (!area) return;
-  const subs = state.subOwners || [];
-  area.innerHTML = `
-    <div class="match-card">
-      <div><h3>👑 雄汽 大庭</h3><p class="muted">最高権限オーナー / 履歴削除・権限管理可能</p></div>
-    </div>
-    ${subs.map((s, i) => `
-      <div class="match-card">
-        <div><h3>⭐ ${s.name}</h3><p class="muted">${s.email}</p><p class="muted">サブオーナー / 審査・面談調整・チャット対応</p></div>
-        <div><button class="danger" data-remove-subowner="${i}">削除</button></div>
-      </div>
-    `).join("") || `<p class="muted">サブオーナーはまだ登録されていません。</p>`}
-  `;
-  area.querySelectorAll("[data-remove-subowner]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      if (currentRole !== "owner") return alert("削除できるのはオーナーのみです。");
-      const removed = state.subOwners.splice(Number(btn.dataset.removeSubowner), 1)[0];
-      addAudit(`サブオーナー削除：${removed.name}`);
-      saveState();
-    });
-  });
-}
-
-function renderAuditLogs() {
-  const area = document.getElementById("auditLogArea");
-  if (!area) return;
-  const logs = state.auditLogs || [];
-  area.innerHTML = logs.length ? logs.map(log => `
-    <div class="match-card">
-      <div><h3>${log.action}</h3><p class="muted">${log.time} / ${log.role}</p></div>
-    </div>
-  `).join("") : `<p class="muted">監査ログはまだありません。</p>`;
-}
-
-function ensureChat(projectId) {
-  if (!state.chats) state.chats = {};
-  if (!state.chats[projectId]) state.chats[projectId] = [];
-}
-
-let activeChatProjectId = null;
-
-function renderChatRoom() {
-  const list = document.getElementById("chatProjectList");
-  const messages = document.getElementById("chatMessages");
-  const title = document.getElementById("chatTitle");
-  if (!list || !messages || !title) return;
-
-  const projects = state.projects;
-  list.innerHTML = projects.length ? projects.map(p => `
-    <button class="ghost full chat-project-button" data-chat-project="${p.id}">${p.title}</button>
-  `).join("") : `<p class="muted">チャット対象の案件がありません。</p>`;
-
-  list.querySelectorAll("[data-chat-project]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      activeChatProjectId = btn.dataset.chatProject;
-      renderChatRoom();
-    });
-  });
-
-  const project = state.projects.find(p => p.id === activeChatProjectId);
-  if (!project) {
-    title.textContent = "案件を選択してください";
-    messages.innerHTML = `<p class="muted">左側から案件を選ぶとチャットが表示されます。</p>`;
-    return;
-  }
-
-  ensureChat(project.id);
-  title.textContent = project.title;
-  messages.innerHTML = state.chats[project.id].length ? state.chats[project.id].map(m => `
-    <div class="chat-message">
-      <b>${m.role}</b><small>${m.time}</small>
-      <p>${m.text}</p>
-    </div>
-  `).join("") : `<p class="muted">まだメッセージはありません。</p>`;
-}
-
-function sendChatMessage() {
-  if (!activeChatProjectId) return alert("先に案件を選択してください。");
-  const input = document.getElementById("chatInput");
-  const text = input.value.trim();
-  if (!text) return;
-  ensureChat(activeChatProjectId);
-  state.chats[activeChatProjectId].push({
-    role: roleLabels[currentRole],
-    text,
-    time: new Date().toLocaleString("ja-JP")
-  });
-  input.value = "";
-  addAudit(`チャット送信：${text.slice(0, 30)}`);
-  saveState();
-  renderChatRoom();
-}
-
-function render() {
-  renderTags();
-  renderProjects();
-  renderCreators();
-  renderProposals();
-  renderActiveProject();
-  renderOwnerDashboard();
-  renderOwners();
-  renderAuditLogs();
-  renderChatRoom();
-}
-
-function setupEvents() {
-  document.querySelectorAll("[data-role-select]").forEach(button => {
-    button.addEventListener("click", () => {
-      selectedLoginRole = button.dataset.roleSelect;
-      document.querySelectorAll("[data-role-select]").forEach(b => b.classList.remove("on"));
-      button.classList.add("on");
-    });
-  });
-
-  document.getElementById("loginButton").addEventListener("click", () => login(selectedLoginRole));
-  document.getElementById("logoutButton").addEventListener("click", logout);
-
-  document.getElementById("mobileMenu").addEventListener("change", event => {
-    navigate(event.target.value);
-  });
-
-  document.getElementById("projectFormElement").addEventListener("submit", event => {
-    event.preventDefault();
-    const form = new FormData(event.target);
-
-    const project = {
-      id: uid(),
-      ownerRole: currentRole,
-      company: form.get("company"),
-      person: form.get("person"),
-      title: form.get("title"),
-      budget: form.get("budget"),
-      deadline: form.get("deadline"),
-      detail: form.get("detail"),
-      worldText: form.get("worldText"),
-      tags: [...state.selectedTags],
-      safety: "運営確認前",
-      status: "候補検索可能",
-      createdAt: new Date().toLocaleString("ja-JP")
-    };
-
-    state.projects.push(project);
-    state.activeProjectId = project.id;
-    addAudit(`案件登録：${project.title}`);
-    saveState();
-    alert("案件を登録しました。候補検索へ進めます。");
-    navigate("projectList");
-  });
-
-  document.getElementById("creatorFormElement").addEventListener("submit", event => {
-    event.preventDefault();
-
-    const requiredChecks = ["confirmNoAntiSocial", "confirmLegal", "confirmRights", "confirmNg"];
-    const allConfirmed = requiredChecks.every(id => document.getElementById(id)?.checked);
-    if (!allConfirmed) {
-      alert("登録前の確認事項にすべて同意してください。");
-      return;
-    }
-
-    const form = new FormData(event.target);
-
-    const creator = {
-      id: uid(),
-      ownerRole: currentRole,
-      name: form.get("name"),
-      email: form.get("email"),
-      url: form.get("url"),
-      price: form.get("price"),
-      leadTime: "要相談",
-      world: form.get("world"),
-      policy: form.get("policy"),
-      tags: [...state.creatorSelectedTags],
-      caution: [...state.creatorNgTags],
-      ngText: "登録時の確認事項に同意済み",
-      works: ["提出作品1", "提出作品2", "提出作品3"],
-      workImages: [creatorDraftImages.work1, creatorDraftImages.work2, creatorDraftImages.work3].filter(Boolean),
-      faceImage: creatorDraftImages.face,
-      workNote: form.get("workNote"),
-      complianceConfirmed: true,
-      complianceConfirmedAt: new Date().toLocaleString("ja-JP")
-    };
-
-    state.creators.push(creator);
-    addAudit(`表現者登録：${creator.name}`);
-    saveState();
-    alert("表現者プロフィールを登録しました。");
-    navigate("creatorList");
-  });
-
-  document.getElementById("creatorBackButton").addEventListener("click", () => setCreatorWizardStep(creatorWizardStep - 1));
-  document.getElementById("creatorNextButton").addEventListener("click", () => setCreatorWizardStep(creatorWizardStep + 1));
-
-  const creatorForm = document.getElementById("creatorFormElement");
-  creatorForm.elements["faceImage"].addEventListener("change", event => previewImage(event.target, "facePreview", "face"));
-  creatorForm.elements["workFile1"].addEventListener("change", event => previewImage(event.target, "workPreview1", "work1"));
-  creatorForm.elements["workFile2"].addEventListener("change", event => previewImage(event.target, "workPreview2", "work2"));
-  creatorForm.elements["workFile3"].addEventListener("change", event => previewImage(event.target, "workPreview3", "work3"));
-
-  document.getElementById("runMatchButton").addEventListener("click", runMatch);
-
-  
-  const addSubOwnerButton = document.getElementById("addSubOwnerButton");
-  if (addSubOwnerButton) {
-    addSubOwnerButton.addEventListener("click", () => {
-      if (currentRole !== "owner") return alert("サブオーナー追加はオーナーのみ可能です。");
-      const name = document.getElementById("subOwnerName").value.trim();
-      const email = document.getElementById("subOwnerEmail").value.trim();
-      if (!name) return alert("名前を入力してください。");
-      if (!state.subOwners) state.subOwners = [];
-      state.subOwners.push({ name, email, createdAt: new Date().toLocaleString("ja-JP") });
-      addAudit(`サブオーナー追加：${name}`);
-      document.getElementById("subOwnerName").value = "";
-      document.getElementById("subOwnerEmail").value = "";
-      saveState();
-    });
-  }
-
-  const clearAuditLogButton = document.getElementById("clearAuditLogButton");
-  if (clearAuditLogButton) {
-    clearAuditLogButton.addEventListener("click", () => {
-      if (currentRole !== "owner") return alert("履歴削除はオーナーのみ可能です。");
-      if (!confirm("監査ログを削除しますか？")) return;
-      state.auditLogs = [];
-      saveState();
-    });
-  }
-
-  const sendChatButton = document.getElementById("sendChatButton");
-  if (sendChatButton) sendChatButton.addEventListener("click", sendChatMessage);
-
-
-  setCreatorWizardStep(1);
-}
-
-setupEvents();
-render();
-
-
-
-
-
-
-
-const replayIntroButton = document.getElementById("replayIntroButton");
-if (replayIntroButton) {
-  replayIntroButton.addEventListener("click", () => setupBrandIntro());
-}
-
-
-function setupBrandIntro() {
-  const intro = document.getElementById("brandIntro");
-  const login = document.getElementById("loginScreen");
-  if (!intro || !login) return;
-
-  intro.style.display = "flex";
-  intro.classList.remove("hide");
-  login.classList.remove("ready");
-  login.classList.add("intro-wait");
-
-  window.setTimeout(() => {
-    intro.classList.add("hide");
-    window.setTimeout(() => {
-      intro.style.display = "none";
-      login.classList.remove("intro-wait");
-      login.classList.add("ready");
-    }, 1200);
-  }, 6200);
-}
-
-function replayBrandIntro() {
-  setupBrandIntro();
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  setupBrandIntro();
-  const replay = document.getElementById("replayIntroButton");
-  if (replay) replay.addEventListener("click", replayBrandIntro);
-});
